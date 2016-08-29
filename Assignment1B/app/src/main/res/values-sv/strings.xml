@@ -5,4 +5,5 @@
     <string name="phone">Telefon:</string>
     <string name="email">Epost:</string>
     <string name="summary">Sammanfattning</string>
+    <string name="change_color">Byta Färg</string>
 </resources>

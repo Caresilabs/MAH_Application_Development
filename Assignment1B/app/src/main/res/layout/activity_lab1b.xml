@@ -71,7 +71,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/seperator"
-        android:id="@+id/tvSeperator"
+        android:id="@+id/tvSummary"
         android:textColor="@color/orange"
         android:layout_below="@+id/tvEmail"
         android:layout_alignParentStart="true"/>
@@ -90,9 +90,18 @@
         android:layout_height="wrap_content"
         android:id="@+id/ivPhoto"
         android:src="@drawable/baloo"
-        android:layout_below="@+id/tvSeperator"
+        android:layout_below="@+id/tvSummary"
         android:layout_alignParentEnd="true"
         android:layout_marginTop="32dp"
         android:layout_alignParentStart="true"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/change_color"
+        android:id="@+id/bChangeColor"
+        android:layout_below="@+id/ivPhoto"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="75dp"/>
 
 </RelativeLayout>

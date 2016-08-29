@@ -6,4 +6,5 @@
     <string name="email">Email:</string>
     <string name="seperator">------</string>
     <string name="summary">Summary</string>
+    <string name="change_color">Change Color</string>
 </resources>
