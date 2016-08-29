@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Assignment1B</string>
+    <string name="hello">Hello Students!</string>
+    <string name="name">Name:</string>
+    <string name="phone">Phone:</string>
+    <string name="email">Email:</string>
+    <string name="seperator">------</string>
+    <string name="summary">Summary</string>
+</resources>
