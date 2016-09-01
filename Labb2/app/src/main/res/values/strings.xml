@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Labb2</string>
+    <string name="what_to_do">Go outside. LOL.</string>
+    <string name="content2">Just something :(</string>
+    <string name="what_to_do2">Code Android</string>
+    <string name="content3">Head Mash the Keyboard</string>
+    <string name="what_to_do3">Nothing</string>
+    <string name="content">Welll nothing...</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

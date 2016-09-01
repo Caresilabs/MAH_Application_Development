@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Labboration1b</string>
+    <string name="hello">Hej Studenter!</string>
+    <string name="name">Namn:</string>
+    <string name="phone">Telefon:</string>
+    <string name="email">Epost:</string>
+    <string name="summary">Sammanfattning</string>
+    <string name="change_color">Byta Färg</string>
+</resources>
