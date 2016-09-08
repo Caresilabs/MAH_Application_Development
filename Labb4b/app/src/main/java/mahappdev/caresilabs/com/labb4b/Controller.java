@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.ActionBarDrawerToggle;
 
 /**
  * Created by Simon on 9/5/2016.
@@ -16,7 +17,6 @@ public class Controller {
 
     public Controller(MainActivity activity) {
         this.activity = activity;
-
         FragmentManager fgManager = activity.getSupportFragmentManager();
         batteryFragment = (BatteryFragment) fgManager.findFragmentById(R.id.fragBattery);
 
