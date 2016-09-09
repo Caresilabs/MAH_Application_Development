@@ -4,5 +4,10 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
-    <string name="action_settings">Settings</string>
+    <string name="action_barcode">Scan Barcode</string>
+    <string name="title_activity_detailed_list">DetailedListActivity</string>
+
+    <string name="all_income">All Income</string>
+    <string name="all_expenitures">All Expenditures</string>
+
 </resources>

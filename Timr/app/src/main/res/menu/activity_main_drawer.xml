@@ -1,17 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/nav_finance"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="Time Finance"/>
-    </group>
+    <item android:title="Timr">
+        <group android:checkableBehavior="single">
+            <item
+                android:id="@+id/nav_summary"
+                android:icon="@drawable/ic_menu_camera"
+                android:title="Time Summary"/>
+            <item
+                android:id="@+id/nav_income"
+                android:icon="@drawable/ic_menu_camera"
+                android:title="Income Time"/>
+            <item
+                android:id="@+id/nav_expenditure"
+                android:icon="@drawable/ic_menu_camera"
+                android:title="Expenditure Time"/>
+        </group>
+    </item>
 
-    <item android:title="Communicate">
+    <item android:title="Other">
         <menu>
             <item
-                android:id="@+id/nav_share"
+                android:id="@+id/nav_profile"
                 android:icon="@drawable/ic_menu_share"
                 android:title="My Profile"/>
         </menu>

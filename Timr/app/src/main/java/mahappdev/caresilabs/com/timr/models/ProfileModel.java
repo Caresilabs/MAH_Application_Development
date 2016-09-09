@@ -9,4 +9,6 @@ public class ProfileModel extends DataModel{
     public String lastName;
 
     public String birthday;
+
+    public String email;
 }
