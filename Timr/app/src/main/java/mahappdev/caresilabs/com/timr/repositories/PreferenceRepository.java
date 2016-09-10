@@ -4,6 +4,8 @@ import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
 
+import java.util.List;
+
 import mahappdev.caresilabs.com.timr.models.DataModel;
 
 /**
@@ -17,21 +19,27 @@ public class PreferenceRepository implements IRepository<DataModel> {
     }
 
     @Override
-    public void insert(DataModel model) {
+    public void put(DataModel model) {
         String values = new Gson().toJson(model);
-        prefs.edit().putString(model.getClass().getName(), values).apply();
-    }
-
-    @Override
-    public void update(DataModel model) {
-        String values = new Gson().toJson(model);
-        prefs.edit().putString(model.getClass().getName(), values).apply();
+        prefs.edit().putString(model.getClass().getSimpleName(), values).apply();
     }
 
     @Override
     public void remove(DataModel model) {
         prefs.edit()
-                .remove(model.getClass().getName())
+                .remove(model.getClass().getSimpleName())
                 .apply();
+    }
+
+    @Override
+    public <A extends DataModel> A get(Class<A> model, int id) {
+        String data = prefs.getString(model.getSimpleName(), "");
+        A datamodel = new Gson().fromJson(data, model);
+        return datamodel;
+    }
+
+    @Override
+    public <A extends DataModel> List<A> get(Class<A> model, String where) {
+        return null;
     }
 }

@@ -5,13 +5,15 @@ import java.util.Date;
 /**
  * Created by Simon on 9/8/2016.
  */
-public class Income extends DataModel{
+public class TimeItem extends DataModel{
 
     public String title;
 
     public Date date;
 
-    public float amount;
+    public int fromTime;
+
+    public int toTime;
 
     public String category;
 

@@ -1,11 +1,9 @@
 package mahappdev.caresilabs.com.timr.views;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -13,11 +11,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import mahappdev.caresilabs.com.timr.R;
+import mahappdev.caresilabs.com.timr.controllers.MainController;
+import mahappdev.caresilabs.com.timr.models.ProfileModel;
+import mahappdev.caresilabs.com.timr.repositories.PreferenceRepository;
+import mahappdev.caresilabs.com.timr.repositories.SQLRepository;
+import mahappdev.caresilabs.com.timr.repositories.TimrSQLRepository;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -26,27 +31,62 @@ public class MainActivity extends AppCompatActivity
         SUMMARY, DETAILS_INCOME, DETAILS_EXPENDITURE
     }
 
+    public static final String PREFS_NAME = ".timr";
+
     @BindView(R.id.drawer_layout)
     DrawerLayout drawer;
 
     @BindView(R.id.nav_view)
     NavigationView navigationView;
 
+    private TextView tvMenuUserFullName;
+    private TextView tvMenuUserEmail;
+
     private SummaryFragment summaryFragment;
     private DetailsFragment detailsFragment;
+
+    private MainController controller;
+
+    private PreferenceRepository prefs;
+    private SQLRepository        db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initRepositories();
+        this.controller = new MainController(db, prefs);
+
         initUIComponents();
         initFragments(savedInstanceState);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // if we haven't filled in profile yet.
+        ProfileModel profile = prefs.get(ProfileModel.class, 0);
+        if (profile == null) {
+            launchEditProfile();
+        } else {
+            tvMenuUserFullName.setText(String.format("%s %s", profile.firstName, profile.lastName));
+            tvMenuUserEmail.setText(profile.email);
+        }
+    }
+
+    private void initRepositories() {
+        this.prefs = new PreferenceRepository(getSharedPreferences(PREFS_NAME, MODE_PRIVATE));
+        this.db = new TimrSQLRepository(this);
     }
 
     private void initUIComponents() {
         // Bind butterknife
         ButterKnife.bind(this);
+
+        // Header text
+        tvMenuUserFullName = (TextView)navigationView.getHeaderView(0).findViewById(R.id.tvMenuUserFullName);
+        tvMenuUserEmail = (TextView)navigationView.getHeaderView(0).findViewById(R.id.tvMenuUserEmail);
 
         // Tool bar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -65,6 +105,15 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initFragments(Bundle savedInstanceState) {
+        // Create a new Fragment to be placed in the activity layout
+        if (summaryFragment == null)
+            summaryFragment = new SummaryFragment();
+        if (detailsFragment == null)
+            detailsFragment = new DetailsFragment();
+
+        summaryFragment.setController(controller);
+        detailsFragment.setController(controller);
+
         // Check that the activity is using the layout version with
         // the fragment_container FrameLayout
         if (findViewById(R.id.fragment_main) != null) {
@@ -75,10 +124,6 @@ public class MainActivity extends AppCompatActivity
             if (savedInstanceState != null) {
                 return;
             }
-
-            // Create a new Fragment to be placed in the activity layout
-            summaryFragment = new SummaryFragment();
-            detailsFragment = new DetailsFragment();
 
             // In case this activity was started with special instructions from an
             // Intent, pass the Intent's extras to the fragment as arguments
@@ -120,7 +165,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void launchEditProfile() {
-
+        Intent intent = new Intent(this, ProfileActivity.class);
+        startActivity(intent);
     }
 
     @Override
@@ -159,7 +205,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
-            launchEditProfile();
+
         if (id == R.id.nav_income) {
             switchFragment(FragmentType.DETAILS_INCOME);
         } else if (id == R.id.nav_expenditure) {
@@ -167,7 +213,7 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_summary) {
             switchFragment(FragmentType.SUMMARY);
         } else if (id == R.id.nav_profile) {
-
+            launchEditProfile();
         }
 
         drawer.closeDrawer(GravityCompat.START);

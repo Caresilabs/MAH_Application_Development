@@ -32,4 +32,6 @@ dependencies {
     compile 'com.jakewharton:butterknife:8.4.0'
     compile 'com.wdullaer:materialdatetimepicker:2.5.0'
     compile 'com.android.support:support-v4:24.2.0'
+
+    compile 'com.github.PhilJay:MPAndroidChart:v3.0.0-beta1'
 }

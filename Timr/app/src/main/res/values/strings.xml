@@ -9,5 +9,14 @@
 
     <string name="all_income">All Income</string>
     <string name="all_expenitures">All Expenditures</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="email">Email</string>
+    <string name="save">Save!</string>
+    <string name="edit_profile_title">Edit Profile</string>
+    <string name="required_fields">Please enter all required fields!</string>
+    <string name="edit_item_title">Edit Item</string>
+    <string name="item_title">Title</string>
+    <string name="category">Category</string>
 
 </resources>
