@@ -2,8 +2,10 @@ package mahappdev.caresilabs.com.timr.views;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,15 +16,18 @@ import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
+import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import mahappdev.caresilabs.com.timr.R;
 import mahappdev.caresilabs.com.timr.models.ExpenditureCategory;
+import mahappdev.caresilabs.com.timr.models.ExpenditureModel;
 import mahappdev.caresilabs.com.timr.models.IncomeCategory;
 import mahappdev.caresilabs.com.timr.models.TimeItem;
 
@@ -33,6 +38,18 @@ public class EditItemActivity extends AppCompatActivity {
 
     @BindView(R.id.spnrCategory)
     Spinner spnrCategory;
+
+    @BindView(R.id.btnItemDate)
+    Button btnItemDate;
+
+    @BindView(R.id.btnItemFrom)
+    Button btnItemFrom;
+
+    @BindView(R.id.btnItemTo)
+    Button btnItemTo;
+
+    @BindString(R.string.required_fields)
+    String requiredFieldsMessage;
 
     private MainActivity.FragmentType categoryType;
     private TimeItem                  model;
@@ -52,12 +69,54 @@ public class EditItemActivity extends AppCompatActivity {
 
         initUI();
 
+        updateFields();
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        TimeItem item = new Gson().fromJson(savedInstanceState.getString("model"), TimeItem.class);
+        if (item != null)
+            this.model = item;
+
+        updateFields();
+    }
+
+    private void updateFields() {
         if (this.model == null) {
             this.model = new TimeItem();
+            this.model.date = Calendar.getInstance().getTime();
         } else {
-            etItemTitle.setText(model.title);
-            //spnrCategory.setId();
+            if (model.title != null)
+                etItemTitle.setText(model.title);
+
+            if (categoryType == MainActivity.FragmentType.DETAILS_INCOME) {
+                spnrCategory.setSelection(IncomeCategory.valueOf(model.category).ordinal());
+            } else {
+                spnrCategory.setSelection(ExpenditureCategory.valueOf(model.category).ordinal());
+            }
         }
+        updateButtonTexts();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        model.title = etItemTitle.getText().toString();
+        model.category = (String) spnrCategory.getSelectedItem();
+
+        String data = new Gson().toJson(model);
+        outState.putString("model", data);
+
+        super.onSaveInstanceState(outState);
+    }
+
+    private void updateButtonTexts() {
+        if (model.date != null)
+            btnItemDate.setText(new SimpleDateFormat("dd/MM/yyyy").format(model.date));
+        if (model.fromTime != 0)
+            btnItemFrom.setText(formatTime(model.fromTime));
+        if (model.toTime != 0)
+            btnItemTo.setText(formatTime(model.toTime));
     }
 
     private void initUI() {
@@ -83,6 +142,7 @@ public class EditItemActivity extends AppCompatActivity {
                         Calendar c = Calendar.getInstance();
                         c.set(year, monthOfYear, dayOfMonth);
                         model.date = c.getTime();
+                        updateButtonTexts();
                     }
                 },
                 now.get(Calendar.YEAR),
@@ -99,6 +159,7 @@ public class EditItemActivity extends AppCompatActivity {
             @Override
             public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute, int second) {
                 model.fromTime = (hourOfDay * 60) + minute;
+                updateButtonTexts();
             }
         }, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), true);
         tpd.show(getFragmentManager(), "FromTimepickerdialog");
@@ -111,6 +172,7 @@ public class EditItemActivity extends AppCompatActivity {
             @Override
             public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute, int second) {
                 model.toTime = (hourOfDay * 60) + minute;
+                updateButtonTexts();
             }
         }, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), true);
         tpd.show(getFragmentManager(), "ToTimepickerdialog");
@@ -118,9 +180,14 @@ public class EditItemActivity extends AppCompatActivity {
 
     @OnClick(R.id.btnSaveItem)
     void onSaveItemClick() {
-        // TODO check everything
+        if (TextUtils.isEmpty(etItemTitle.getText().toString()) ||
+                model.fromTime == 0 ||
+                model.toTime == 0 ||
+                model.date == null) {
+            Snackbar.make(btnItemDate, requiredFieldsMessage, Snackbar.LENGTH_SHORT).show();
+            return;
+        }
 
-        // TODO set everything
         model.title = etItemTitle.getText().toString();
         model.category = (String) spnrCategory.getSelectedItem();
 
@@ -133,5 +200,12 @@ public class EditItemActivity extends AppCompatActivity {
 
     public static String[] getNames(Class<? extends Enum<?>> e) {
         return Arrays.toString(e.getEnumConstants()).replaceAll("^.|.$", "").split(", ");
+    }
+
+    public static String formatTime(int time) {
+        int hour = (int) (time / 60);
+        int min = (time % 60);
+
+        return (hour < 9 ? "0" : "") + hour + ":" + (min < 10 ? "0" : "") + min;
     }
 }

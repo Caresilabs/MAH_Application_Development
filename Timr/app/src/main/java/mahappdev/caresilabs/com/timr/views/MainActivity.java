@@ -1,9 +1,15 @@
 package mahappdev.caresilabs.com.timr.views;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -12,13 +18,19 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.gson.Gson;
 
 import org.w3c.dom.Text;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import mahappdev.caresilabs.com.timr.BarcodeScannerItemFactory;
 import mahappdev.caresilabs.com.timr.R;
 import mahappdev.caresilabs.com.timr.controllers.MainController;
+import mahappdev.caresilabs.com.timr.models.ExpenditureModel;
+import mahappdev.caresilabs.com.timr.models.IncomeModel;
 import mahappdev.caresilabs.com.timr.models.ProfileModel;
 import mahappdev.caresilabs.com.timr.repositories.PreferenceRepository;
 import mahappdev.caresilabs.com.timr.repositories.SQLRepository;
@@ -31,7 +43,8 @@ public class MainActivity extends AppCompatActivity
         SUMMARY, DETAILS_INCOME, DETAILS_EXPENDITURE
     }
 
-    public static final String PREFS_NAME = ".timr";
+    public static final  String PREFS_NAME                   = ".timr";
+    private static final int    BARCODE_SCANNER_REQUEST_CODE = 0xff1;
 
     @BindView(R.id.drawer_layout)
     DrawerLayout drawer;
@@ -65,6 +78,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+
         // if we haven't filled in profile yet.
         ProfileModel profile = prefs.get(ProfileModel.class, 0);
         if (profile == null) {
@@ -85,8 +99,8 @@ public class MainActivity extends AppCompatActivity
         ButterKnife.bind(this);
 
         // Header text
-        tvMenuUserFullName = (TextView)navigationView.getHeaderView(0).findViewById(R.id.tvMenuUserFullName);
-        tvMenuUserEmail = (TextView)navigationView.getHeaderView(0).findViewById(R.id.tvMenuUserEmail);
+        tvMenuUserFullName = (TextView) navigationView.getHeaderView(0).findViewById(R.id.tvMenuUserFullName);
+        tvMenuUserEmail = (TextView) navigationView.getHeaderView(0).findViewById(R.id.tvMenuUserEmail);
 
         // Tool bar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -102,21 +116,23 @@ public class MainActivity extends AppCompatActivity
         // Navigation view
         //NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        navigationView.setCheckedItem(R.id.nav_summary);
     }
 
     private void initFragments(Bundle savedInstanceState) {
-        // Create a new Fragment to be placed in the activity layout
-        if (summaryFragment == null)
-            summaryFragment = new SummaryFragment();
-        if (detailsFragment == null)
-            detailsFragment = new DetailsFragment();
-
-        summaryFragment.setController(controller);
-        detailsFragment.setController(controller);
-
-        // Check that the activity is using the layout version with
-        // the fragment_container FrameLayout
         if (findViewById(R.id.fragment_main) != null) {
+
+            summaryFragment = (SummaryFragment) getSupportFragmentManager().findFragmentByTag("summaryFragment");
+            detailsFragment = (DetailsFragment) getSupportFragmentManager().findFragmentByTag("detailsFragment");
+
+            // Create a new Fragment to be placed in the activity layout
+            if (summaryFragment == null)
+                summaryFragment = new SummaryFragment();
+            if (detailsFragment == null)
+                detailsFragment = new DetailsFragment();
+
+            summaryFragment.setController(controller);
+            detailsFragment.setController(controller);
 
             // However, if we're being restored from a previous state,
             // then we don't need to do anything and should return or else
@@ -131,28 +147,30 @@ public class MainActivity extends AppCompatActivity
 
             // Add the fragment to the 'fragment_container' FrameLayout
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fragment_main, summaryFragment)
+                    .replace(R.id.fragment_main, summaryFragment, "summaryFragment")
                     .commit();
         }
     }
 
     public void switchFragment(FragmentType type) {
         Fragment frag = null;
+        String tag = null;
 
-        switch (type){
+        switch (type) {
             case SUMMARY:
                 frag = summaryFragment;
                 navigationView.setCheckedItem(R.id.nav_summary);
+                tag = "summaryFragment";
                 break;
             case DETAILS_INCOME:
                 frag = detailsFragment;
-                detailsFragment.setStartTab(0);
                 navigationView.setCheckedItem(R.id.nav_income);
+                tag = "detailsFragment";
                 break;
             case DETAILS_EXPENDITURE:
                 frag = detailsFragment;
-                detailsFragment.setStartTab(1);
                 navigationView.setCheckedItem(R.id.nav_expenditure);
+                tag = "detailsFragment";
                 break;
             default:
                 break;
@@ -160,8 +178,22 @@ public class MainActivity extends AppCompatActivity
 
         getSupportFragmentManager().beginTransaction()
                 .setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
-                .replace(R.id.fragment_main, frag)
+                .replace(R.id.fragment_main, frag, tag)
                 .commit();
+
+
+        switch (type) {
+            case SUMMARY:
+                break;
+            case DETAILS_INCOME:
+                detailsFragment.setStartTab(0);
+                break;
+            case DETAILS_EXPENDITURE:
+                detailsFragment.setStartTab(1);
+                break;
+            default:
+                break;
+        }
     }
 
     private void launchEditProfile() {
@@ -195,10 +227,53 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_barcode) {
+            startBarcodeScanner();
+
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void startBarcodeScanner() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA}, BARCODE_SCANNER_REQUEST_CODE);
+        } else {
+            Intent intent = new Intent(this, BarcodeScannerActivity.class);
+            startActivityForResult(intent, BARCODE_SCANNER_REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case BARCODE_SCANNER_REQUEST_CODE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startBarcodeScanner();
+                } else {
+                    Toast.makeText(this, "Please grant camera permission to use the QR Scanner", Toast.LENGTH_SHORT).show();
+                }
+                return;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == BARCODE_SCANNER_REQUEST_CODE) {
+            if (resultCode == Activity.RESULT_OK) {
+                String code = data.getStringExtra("barcodeData");
+
+                ExpenditureModel model = BarcodeScannerItemFactory.getExpenditureFromBarcode(code);
+                if (model != null) {
+                    db.put(model);
+                    detailsFragment.refreshLists();
+                }
+            }
+        }
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -218,5 +293,11 @@ public class MainActivity extends AppCompatActivity
 
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        db.close();
     }
 }

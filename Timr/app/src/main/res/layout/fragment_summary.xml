@@ -40,7 +40,18 @@
         android:text="welcome"
         android:id="@+id/tvWelcomeMessage"
         android:layout_gravity="center"
-        android:gravity="center"/>
+        android:gravity="center"
+        android:layout_marginBottom="80dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Last 30 Days Summary"
+        android:id="@+id/textView"
+        android:gravity="center_horizontal"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
 
     <LinearLayout
         android:orientation="horizontal"

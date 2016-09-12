@@ -1,104 +1,113 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="mahappdev.caresilabs.com.timr.views.EditItemActivity">
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:id="@+id/linearLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools" android:layout_height="match_parent"
+              tools:context="mahappdev.caresilabs.com.timr.views.EditItemActivity"
+              android:layout_width="match_parent"
+              android:orientation="vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="@string/edit_item_title"
-            android:layout_marginBottom="24dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="@string/item_title"/>
-
-        <EditText
+    <ScrollView
+            android:id="@+id/scrollView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/activity_vertical_margin"
+
+
+         >
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="@string/edit_item_title"
+            android:textAppearance="?android:attr/textAppearanceLarge"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/item_title"
+            android:textAppearance="?android:attr/textAppearanceSmall"/>
+
+        <EditText
             android:id="@+id/etItemTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:inputType="text"
             android:singleLine="true"/>
 
         <Button
+            android:id="@+id/btnItemDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Date"
-            android:id="@+id/btnItemDate"
+            android:layout_gravity="center_horizontal"
             android:background="?android:attr/selectableItemBackground"
-            android:layout_gravity="center_horizontal"/>
+            android:text="Date"/>
 
         <LinearLayout
-            android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal">
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
 
             <Button
+                android:id="@+id/btnItemFrom"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="From"
-                android:id="@+id/btnItemFrom"
-                android:background="?android:attr/selectableItemBackground"/>
+                android:background="?android:attr/selectableItemBackground"
+                android:text="From"/>
 
             <TextView
+                android:id="@+id/textView2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
                 android:text="-"
-                android:id="@+id/textView2"/>
+                android:textAppearance="?android:attr/textAppearanceSmall"/>
 
             <Button
+                android:id="@+id/btnItemTo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="To"
-                android:id="@+id/btnItemTo"
-                android:background="?android:attr/selectableItemBackground"/>
+                android:background="?android:attr/selectableItemBackground"
+                android:text="To"/>
         </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_marginBottom="5dp"
             android:text="@string/category"
-            android:layout_marginBottom="5dp"/>
+            android:textAppearance="?android:attr/textAppearanceSmall"/>
 
         <Spinner
+            android:id="@+id/spnrCategory"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/spnrCategory"
             />
 
         <LinearLayout
-            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="bottom">
+            android:layout_height="wrap_content"
+            android:gravity="bottom"
+            android:orientation="vertical">
 
             <Button
+                android:id="@+id/btnSaveItem"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/save"
-                android:id="@+id/btnSaveItem"
-                android:layout_gravity="center_horizontal"/>
+                android:layout_gravity="center_horizontal"
+                android:text="@string/save"/>
         </LinearLayout>
 
     </LinearLayout>
+</ScrollView>
 
-</RelativeLayout>
+</LinearLayout>

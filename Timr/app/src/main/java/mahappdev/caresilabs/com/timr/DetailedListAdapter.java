@@ -7,9 +7,11 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import mahappdev.caresilabs.com.timr.models.TimeItem;
+import mahappdev.caresilabs.com.timr.views.EditItemActivity;
 
 /**
  * Created by Simon on 9/10/2016.
@@ -50,9 +52,10 @@ public class DetailedListAdapter<T extends TimeItem> extends ArrayAdapter<T> {
         viewHolder.tvTitle.setText(data.title + " - " + Math.max(0, data.toTime - data.fromTime) + "min");
         viewHolder.tvSubTitle1.setText(data.category);
 
-        String from = ((int) (data.fromTime / 60) + ":" + (data.fromTime % 60));
-        String to = ((int) (data.toTime / 60) + ":" + (data.toTime % 60));
-        viewHolder.tvSubTitle2.setText(from + " - " + to);
+        String from = EditItemActivity.formatTime(data.fromTime);// (int) (data.fromTime / 60) + ":" + (data.fromTime % 60));
+        String to = EditItemActivity.formatTime(data.toTime);//((int) (data.toTime / 60) + ":" + (data.toTime % 60));
+        String theDate = new SimpleDateFormat("dd/MM/yyyy").format(data.date);
+        viewHolder.tvSubTitle2.setText(theDate + " (" + from + " - " + to + ")");
         return convertView;
 
     }

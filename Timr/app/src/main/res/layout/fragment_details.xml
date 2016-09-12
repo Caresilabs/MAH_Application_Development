@@ -34,41 +34,41 @@
                     android:orientation="vertical">
 
                     <LinearLayout
-                        android:orientation="horizontal"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center">
+                        android:gravity="center"
+                        android:orientation="horizontal">
 
                         <Button
+                            android:id="@+id/btnFromIncome"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="From"
-                            android:id="@+id/btnFromIncome"
-                            android:background="?android:attr/selectableItemBackground"/>
+                            android:background="?android:attr/selectableItemBackground"
+                            android:text="From"/>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textAppearance="?android:attr/textAppearanceSmall"
-                            android:text="-"
+                            android:layout_marginLeft="32dp"
                             android:layout_marginRight="32dp"
-                            android:layout_marginLeft="32dp"/>
+                            android:text="-"
+                            android:textAppearance="?android:attr/textAppearanceSmall"/>
 
                         <Button
+                            android:id="@+id/btnToIncome"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="To"
-                            android:id="@+id/btnToIncome"
-                            android:background="?android:attr/selectableItemBackground"
                             android:layout_weight="0"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:text="To"
                             />
 
                     </LinearLayout>
 
                     <ListView
+                        android:id="@+id/lwIncome"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:id="@+id/lwIncome"/>
+                        android:layout_height="match_parent"/>
 
                 </LinearLayout>
 
@@ -77,8 +77,44 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical">
-                </LinearLayout>
 
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btnFromExpenditure"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:text="From"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="32dp"
+                            android:layout_marginRight="32dp"
+                            android:text="-"
+                            android:textAppearance="?android:attr/textAppearanceSmall"/>
+
+                        <Button
+                            android:id="@+id/btnToExpenditure"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:text="To"
+                            />
+
+                    </LinearLayout>
+
+                    <ListView
+                        android:id="@+id/lwExpenditure"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"/>
+                </LinearLayout>
             </FrameLayout>
 
         </LinearLayout>
@@ -88,11 +124,11 @@
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:src="@drawable/ic_plus"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_margin="11dp"/>
+        android:layout_alignParentRight="true"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="11dp"
+        android:src="@drawable/ic_plus"/>
 
 </RelativeLayout>
