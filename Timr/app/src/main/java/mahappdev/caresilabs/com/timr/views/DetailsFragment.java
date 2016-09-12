@@ -36,7 +36,7 @@ import mahappdev.caresilabs.com.timr.models.TimeItem;
 
 public class DetailsFragment extends Fragment {
 
-    private static final int EDIT_ITEM_REQUEST_CODE = 0xff;
+    public static final int EDIT_ITEM_REQUEST_CODE = 0xff;
 
     @BindView(R.id.tabHost)
     TabHost tabs;
@@ -134,7 +134,7 @@ public class DetailsFragment extends Fragment {
     private DetailedListAdapter incomeAdapter;
     private DetailedListAdapter expenditureAdapter;
 
-    public void refreshLists() {
+    private void refreshLists() {
         if (getActivity() == null)
             return;
 
@@ -147,7 +147,7 @@ public class DetailsFragment extends Fragment {
             lwIncome.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    launchEditItem(MainActivity.FragmentType.DETAILS_INCOME, (IncomeModel) incomeAdapter.getItem(position));
+                    launchEditItem(getActivity() ,MainActivity.FragmentType.DETAILS_INCOME, (IncomeModel) incomeAdapter.getItem(position));
                 }
             });
         } else {
@@ -164,7 +164,7 @@ public class DetailsFragment extends Fragment {
             lwExpenditure.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    launchEditItem(MainActivity.FragmentType.DETAILS_EXPENDITURE, (ExpenditureModel) expenditureAdapter.getItem(position));
+                    launchEditItem(getActivity(), MainActivity.FragmentType.DETAILS_EXPENDITURE, (ExpenditureModel) expenditureAdapter.getItem(position));
                 }
             });
         } else {
@@ -180,9 +180,9 @@ public class DetailsFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 if (tabs.getCurrentTab() == 0) {
-                    launchEditItem(MainActivity.FragmentType.DETAILS_INCOME, null);
+                    launchEditItem(getActivity(), MainActivity.FragmentType.DETAILS_INCOME, null);
                 } else {
-                    launchEditItem(MainActivity.FragmentType.DETAILS_EXPENDITURE, null);
+                    launchEditItem(getActivity() ,MainActivity.FragmentType.DETAILS_EXPENDITURE, null);
                 }
             }
         });
@@ -192,13 +192,13 @@ public class DetailsFragment extends Fragment {
         tabs.setup();
 
         //Tab 1
-        TabHost.TabSpec spec = tabs.newTabSpec("All Income");
+        TabHost.TabSpec spec = tabs.newTabSpec("My Leisure");
         spec.setContent(R.id.detailedIncomeLayout);
-        spec.setIndicator("Income");
+        spec.setIndicator("Leisure");
         tabs.addTab(spec);
 
         //Tab 2
-        spec = tabs.newTabSpec("All Expenditure");
+        spec = tabs.newTabSpec("My Expenditure");
         spec.setContent(R.id.detailedExpenditureLayout);
         spec.setIndicator("Expenditure");
         tabs.addTab(spec);
@@ -314,30 +314,6 @@ public class DetailsFragment extends Fragment {
         dpd.show(getActivity().getFragmentManager(), "Datepickerdialog");
     }
 
-    private void launchEditItem(MainActivity.FragmentType type, TimeItem data) {
-        Intent intent = new Intent(getActivity(), EditItemActivity.class);
-        intent.putExtra("type", type.ordinal());
-        intent.putExtra("model", new Gson().toJson(data));
-        startActivityForResult(intent, EDIT_ITEM_REQUEST_CODE);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == EDIT_ITEM_REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK) {
-                if (tabs.getCurrentTab() == 0) {
-                    IncomeModel model = new Gson().fromJson(data.getStringExtra("model"), IncomeModel.class);
-                    controller.updateModel(model);
-                } else {
-                    ExpenditureModel model = new Gson().fromJson(data.getStringExtra("model"), ExpenditureModel.class);
-                    controller.updateModel(model);
-                }
-                refreshLists();
-            }
-        }
-    }
-
     public void setStartTab(int id) {
         if (tabs == null) {
             startTab = id;
@@ -348,5 +324,23 @@ public class DetailsFragment extends Fragment {
 
     public void setController(MainController controller) {
         this.mainController = controller;
+    }
+
+    public void launchEditItem(Activity activity, MainActivity.FragmentType type, TimeItem data) {
+        Intent intent = new Intent(activity, EditItemActivity.class);
+        intent.putExtra("type", type.ordinal());
+        intent.putExtra("model", new Gson().toJson(data));
+        activity.startActivityForResult(intent, EDIT_ITEM_REQUEST_CODE);
+    }
+
+    public void onEditItemComplete(Intent data) {
+        if (tabs.getCurrentTab() == 0) {
+            IncomeModel model = new Gson().fromJson(data.getStringExtra("model"), IncomeModel.class);
+            controller.updateModel(model);
+        } else {
+            ExpenditureModel model = new Gson().fromJson(data.getStringExtra("model"), ExpenditureModel.class);
+            controller.updateModel(model);
+        }
+        refreshLists();
     }
 }

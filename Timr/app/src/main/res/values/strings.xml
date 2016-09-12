@@ -5,10 +5,9 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_barcode">Scan Barcode</string>
-    <string name="title_activity_detailed_list">DetailedListActivity</string>
 
-    <string name="all_income">All Income</string>
-    <string name="all_expenitures">All Expenditures</string>
+    <string name="all_income">My Leisure</string>
+    <string name="all_expenitures">My Expenditures</string>
     <string name="first_name">First Name</string>
     <string name="last_name">Last Name</string>
     <string name="email">Email</string>

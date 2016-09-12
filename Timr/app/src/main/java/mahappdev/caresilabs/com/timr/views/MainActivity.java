@@ -269,9 +269,13 @@ public class MainActivity extends AppCompatActivity
 
                 ExpenditureModel model = BarcodeScannerItemFactory.getExpenditureFromBarcode(code);
                 if (model != null) {
-                    db.put(model);
-                    detailsFragment.refreshLists();
+                    switchFragment(FragmentType.DETAILS_EXPENDITURE);
+                    detailsFragment.launchEditItem(this, FragmentType.DETAILS_EXPENDITURE, model);
                 }
+            }
+        } else   if (requestCode == DetailsFragment.EDIT_ITEM_REQUEST_CODE) {
+            if (resultCode == Activity.RESULT_OK) {
+                detailsFragment.onEditItemComplete(data);
             }
         }
     }
