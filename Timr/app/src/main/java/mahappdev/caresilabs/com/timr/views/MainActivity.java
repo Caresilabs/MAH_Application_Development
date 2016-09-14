@@ -139,11 +139,13 @@ public class MainActivity extends AppCompatActivity
                 frag = detailsFragment;
                 navigationView.setCheckedItem(R.id.nav_income);
                 tag = "detailsFragment";
+                detailsFragment.setStartTab(0);
                 break;
             case DETAILS_EXPENDITURE:
                 frag = detailsFragment;
                 navigationView.setCheckedItem(R.id.nav_expenditure);
                 tag = "detailsFragment";
+                detailsFragment.setStartTab(1);
                 break;
             default:
                 break;
@@ -154,16 +156,6 @@ public class MainActivity extends AppCompatActivity
                 .replace(R.id.fragment_main, frag, tag)
                 .commit();
 
-        switch (type) {
-            case DETAILS_INCOME:
-                detailsFragment.setStartTab(0);
-                break;
-            case DETAILS_EXPENDITURE:
-                detailsFragment.setStartTab(1);
-                break;
-            default:
-                break;
-        }
     }
 
     public void updateDrawerUserInfo(String name, String email) {

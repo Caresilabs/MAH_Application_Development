@@ -32,7 +32,7 @@ public class ProfileActivity extends AppCompatActivity {
     String requiredFieldsMessage;
 
     private PreferenceRepository prefs;
-    private ProfileModel model;
+    private ProfileModel         model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +58,8 @@ public class ProfileActivity extends AppCompatActivity {
         // Validate input
         if (TextUtils.isEmpty(etFirstName.getText().toString()) ||
                 TextUtils.isEmpty(etLastName.getText().toString()) ||
-                TextUtils.isEmpty(etEmail.getText().toString())) {
+                TextUtils.isEmpty(etEmail.getText().toString()) ||
+                TextUtils.isEmpty(etPassword.getText().toString())) {
             Snackbar.make(findViewById(R.id.profile_layout), requiredFieldsMessage, Snackbar.LENGTH_SHORT).show();
             return;
         }

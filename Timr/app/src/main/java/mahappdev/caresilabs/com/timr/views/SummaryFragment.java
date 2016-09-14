@@ -40,7 +40,7 @@ public class SummaryFragment extends Fragment {
     private SummaryController controller;
 
     @BindView(R.id.pieSummary)
-    PieChart          pieChart;
+    PieChart pieChart;
 
     @BindView(R.id.tvWelcomeMessage)
     TextView tvWelcomeMessage;
@@ -73,7 +73,7 @@ public class SummaryFragment extends Fragment {
 
     private void updateSummary() {
         SummaryModel summary = controller.getSummary();
-        updateSummaryMessage(summary.totalIncome - summary.totalExpenditure);
+        updateSummaryMessage(summary.totalIncome - summary.totalExpenditure, summary.entries.size() != 0);
 
         pieChart.setUsePercentValues(true);
         pieChart.setDescription("");
@@ -110,8 +110,10 @@ public class SummaryFragment extends Fragment {
         pieChart.invalidate();
     }
 
-    private void updateSummaryMessage(int timeLeft) {
-        if (timeLeft < 0) {
+    private void updateSummaryMessage(int timeLeft, boolean hasData) {
+        if (!hasData) {
+            tvSummaryMessage.setText("Begin adding Leisure and Expenditures before\nyou can see the summary.");
+        } else if (timeLeft < 0) {
             tvSummaryMessage.setText("Hate to break it to you but you are\n" + -timeLeft + "min to short!");
         } else {
             tvSummaryMessage.setText("Very good! You have " + timeLeft + "min left!");
@@ -131,7 +133,7 @@ public class SummaryFragment extends Fragment {
     private void updateWelcomeMessage() {
         final ProfileModel model = mainController.getPrefs().get(ProfileModel.class, 0);
         if (model != null)
-            tvWelcomeMessage.setText(String.format("Welcome to Timr %s %s", model.firstName, model.lastName));
+            tvWelcomeMessage.setText(String.format("Welcome to Timr %s %s!", model.firstName, model.lastName));
     }
 
     public void setController(MainController controller) {
