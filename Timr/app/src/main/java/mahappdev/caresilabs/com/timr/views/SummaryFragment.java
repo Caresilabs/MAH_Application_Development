@@ -22,6 +22,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import mahappdev.caresilabs.com.timr.FragmentType;
 import mahappdev.caresilabs.com.timr.R;
 import mahappdev.caresilabs.com.timr.controllers.MainController;
 import mahappdev.caresilabs.com.timr.controllers.SummaryController;
@@ -30,6 +31,7 @@ import mahappdev.caresilabs.com.timr.models.ExpenditureModel;
 import mahappdev.caresilabs.com.timr.models.IncomeCategory;
 import mahappdev.caresilabs.com.timr.models.IncomeModel;
 import mahappdev.caresilabs.com.timr.models.ProfileModel;
+import mahappdev.caresilabs.com.timr.models.SummaryModel;
 import mahappdev.caresilabs.com.timr.models.TimeItem;
 
 public class SummaryFragment extends Fragment {
@@ -37,55 +39,44 @@ public class SummaryFragment extends Fragment {
     private MainController    mainController;
     private SummaryController controller;
 
+    @BindView(R.id.pieSummary)
+    PieChart          pieChart;
+
     @BindView(R.id.tvWelcomeMessage)
     TextView tvWelcomeMessage;
 
-    private PieChart pieChart;
-
-    @OnClick(R.id.btnDetailedIncome)
-    public void allIncomeOnClick() {
-        ((MainActivity) getActivity()).switchFragment(MainActivity.FragmentType.DETAILS_INCOME);
-    }
-
-    @OnClick(R.id.btnDetailedExpenditures)
-    public void allExpendituresOnClick() {
-        ((MainActivity) getActivity()).switchFragment(MainActivity.FragmentType.DETAILS_EXPENDITURE);
-    }
-
+    @BindView(R.id.tvSummaryMessage)
+    TextView tvSummaryMessage;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_summary, container, false);
-        ButterKnife.bind(this, view);
-        pieChart = (PieChart) view.findViewById(R.id.pieSummary);
 
+        // UI
+        ButterKnife.bind(this, view);
+
+        // Setup the controller
         this.controller = new SummaryController(mainController.getDB());
 
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateWelcomeMessage();
+        updateSummary();
+    }
 
-    private void updatePieChart() {
-        // Query db
-        Calendar cal = Calendar.getInstance();
-        long to = cal.getTime().getTime();
-        cal.add(Calendar.MONTH, -1);
-        long from = cal.getTime().getTime();
-        String query = String.format("date >= %d AND date <= %d", from, to);
-        final List<ExpenditureModel> rows = mainController.getDB().get(ExpenditureModel.class, query);
-
-        int[] expenditureList = new int[ExpenditureCategory.values().length];
-        for (int i = 0; i < rows.size(); i++) {
-            TimeItem time = rows.get(i);
-            int catId = ExpenditureCategory.valueOf(time.category).ordinal();
-
-            expenditureList[catId] = expenditureList[(catId)] + Math.abs(time.toTime - time.fromTime);
-        }
+    private void updateSummary() {
+        SummaryModel summary = controller.getSummary();
+        updateSummaryMessage(summary.totalIncome - summary.totalExpenditure);
 
         pieChart.setUsePercentValues(true);
-        pieChart.setDescription("Time Share");
+        pieChart.setDescription("");
 
         // enable hole and configure
         pieChart.setDrawHoleEnabled(true);
@@ -97,49 +88,50 @@ public class SummaryFragment extends Fragment {
         pieChart.setRotationAngle(0);
         pieChart.setRotationEnabled(true);
 
-        //YourData[] dataObjects = ...;
-
-        List<PieEntry> entries = new ArrayList<PieEntry>();
-
-        for (int i = 0; i < expenditureList.length; i++) {
-            if (expenditureList[i] == 0)
-                continue;
-
-            // turn your data into Entry objects
-            entries.add(new PieEntry(expenditureList[(i)], ExpenditureCategory.values()[i].toString() + " - " + expenditureList[i] + "min"));
-        }
-
-        PieDataSet dataSet = new PieDataSet(entries, "");
+        PieDataSet dataSet = new PieDataSet(summary.entries, "");
         dataSet.setSliceSpace(3f);
         dataSet.setSelectionShift(5f);
 
+        // Color
         ArrayList<Integer> colors = new ArrayList<Integer>();
         for (int c : ColorTemplate.MATERIAL_COLORS)
             colors.add(c);
+        for (int c : ColorTemplate.JOYFUL_COLORS)
+            colors.add(c);
         dataSet.setColors(colors);
-
 
         PieData data = new PieData(dataSet);
         data.setValueFormatter(new PercentFormatter());
         data.setValueTextSize(11f);
         // data.setValueTextColor(Color.WHITE);
-        //data.setValueTypeface(mTfLight);
-
 
         pieChart.setData(data);
-
         pieChart.highlightValues(null);
-        pieChart.invalidate(); // refresh
+        pieChart.invalidate();
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
+    private void updateSummaryMessage(int timeLeft) {
+        if (timeLeft < 0) {
+            tvSummaryMessage.setText("Hate to break it to you but you are\n" + -timeLeft + "min to short!");
+        } else {
+            tvSummaryMessage.setText("Very good! You have " + timeLeft + "min left!");
+        }
+    }
+
+    @OnClick(R.id.btnDetailedIncome)
+    public void allIncomeOnClick() {
+        mainController.switchFragment(FragmentType.DETAILS_INCOME);
+    }
+
+    @OnClick(R.id.btnDetailedExpenditures)
+    public void allExpendituresOnClick() {
+        mainController.switchFragment(FragmentType.DETAILS_EXPENDITURE);
+    }
+
+    private void updateWelcomeMessage() {
         final ProfileModel model = mainController.getPrefs().get(ProfileModel.class, 0);
         if (model != null)
             tvWelcomeMessage.setText(String.format("Welcome to Timr %s %s", model.firstName, model.lastName));
-
-        updatePieChart();
     }
 
     public void setController(MainController controller) {

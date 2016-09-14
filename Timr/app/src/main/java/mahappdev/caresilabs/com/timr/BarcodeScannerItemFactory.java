@@ -4,7 +4,6 @@ import java.util.Calendar;
 
 import mahappdev.caresilabs.com.timr.models.ExpenditureCategory;
 import mahappdev.caresilabs.com.timr.models.ExpenditureModel;
-import mahappdev.caresilabs.com.timr.models.TimeItem;
 
 /**
  * Created by Simon on 9/12/2016.
@@ -30,6 +29,14 @@ public final class BarcodeScannerItemFactory {
                 model.fromTime = 480;
                 model.toTime = 580;
                 model.category = ExpenditureCategory.READING.name();
+                model.date = Calendar.getInstance().getTime();
+                break;
+            case "4902505211287":
+                model = new ExpenditureModel();
+                model.title = "Taking lecture notes";
+                model.fromTime = 520;
+                model.toTime = 600;
+                model.category = ExpenditureCategory.SCHOOL.name();
                 model.date = Calendar.getInstance().getTime();
                 break;
             default:

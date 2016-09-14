@@ -20,28 +20,19 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-
-import org.w3c.dom.Text;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import mahappdev.caresilabs.com.timr.BarcodeScannerItemFactory;
+import mahappdev.caresilabs.com.timr.FragmentType;
 import mahappdev.caresilabs.com.timr.R;
 import mahappdev.caresilabs.com.timr.controllers.MainController;
 import mahappdev.caresilabs.com.timr.models.ExpenditureModel;
-import mahappdev.caresilabs.com.timr.models.IncomeModel;
-import mahappdev.caresilabs.com.timr.models.ProfileModel;
 import mahappdev.caresilabs.com.timr.repositories.PreferenceRepository;
 import mahappdev.caresilabs.com.timr.repositories.SQLRepository;
 import mahappdev.caresilabs.com.timr.repositories.TimrSQLRepository;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-
-    public enum FragmentType {
-        SUMMARY, DETAILS_INCOME, DETAILS_EXPENDITURE
-    }
 
     public static final  String PREFS_NAME                   = ".timr";
     private static final int    BARCODE_SCANNER_REQUEST_CODE = 0xff1;
@@ -68,25 +59,11 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        initRepositories();
-        this.controller = new MainController(db, prefs);
+        this.initRepositories();
+        this.controller = new MainController(this, db, prefs);
 
-        initUIComponents();
-        initFragments(savedInstanceState);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        // if we haven't filled in profile yet.
-        ProfileModel profile = prefs.get(ProfileModel.class, 0);
-        if (profile == null) {
-            launchEditProfile();
-        } else {
-            tvMenuUserFullName.setText(String.format("%s %s", profile.firstName, profile.lastName));
-            tvMenuUserEmail.setText(profile.email);
-        }
+        this.initUIComponents();
+        this.initFragments(savedInstanceState);
     }
 
     private void initRepositories() {
@@ -107,49 +84,45 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         // Drawer
-        // DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
         // Navigation view
-        //NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setCheckedItem(R.id.nav_summary);
     }
 
     private void initFragments(Bundle savedInstanceState) {
-        if (findViewById(R.id.fragment_main) != null) {
+        summaryFragment = (SummaryFragment) getSupportFragmentManager().findFragmentByTag("summaryFragment");
+        detailsFragment = (DetailsFragment) getSupportFragmentManager().findFragmentByTag("detailsFragment");
 
-            summaryFragment = (SummaryFragment) getSupportFragmentManager().findFragmentByTag("summaryFragment");
-            detailsFragment = (DetailsFragment) getSupportFragmentManager().findFragmentByTag("detailsFragment");
+        // Create a new Fragment to be placed in the activity layout
+        if (summaryFragment == null)
+            summaryFragment = new SummaryFragment();
+        if (detailsFragment == null)
+            detailsFragment = new DetailsFragment();
 
-            // Create a new Fragment to be placed in the activity layout
-            if (summaryFragment == null)
-                summaryFragment = new SummaryFragment();
-            if (detailsFragment == null)
-                detailsFragment = new DetailsFragment();
+        summaryFragment.setController(controller);
+        detailsFragment.setController(controller);
 
-            summaryFragment.setController(controller);
-            detailsFragment.setController(controller);
-
-            // However, if we're being restored from a previous state,
-            // then we don't need to do anything and should return or else
-            // we could end up with overlapping fragments.
-            if (savedInstanceState != null) {
-                return;
-            }
-
-            // In case this activity was started with special instructions from an
-            // Intent, pass the Intent's extras to the fragment as arguments
-            summaryFragment.setArguments(getIntent().getExtras());
-
-            // Add the fragment to the 'fragment_container' FrameLayout
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_main, summaryFragment, "summaryFragment")
-                    .commit();
+        if (savedInstanceState != null) {
+            return;
         }
+
+        summaryFragment.setArguments(getIntent().getExtras());
+
+        // Add the fragment to the 'fragment_main' FrameLayout
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_main, summaryFragment, "summaryFragment")
+                .commit();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        controller.updateAndCheckUserProfile();
     }
 
     public void switchFragment(FragmentType type) {
@@ -181,10 +154,7 @@ public class MainActivity extends AppCompatActivity
                 .replace(R.id.fragment_main, frag, tag)
                 .commit();
 
-
         switch (type) {
-            case SUMMARY:
-                break;
             case DETAILS_INCOME:
                 detailsFragment.setStartTab(0);
                 break;
@@ -196,46 +166,17 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void launchEditProfile() {
+    public void updateDrawerUserInfo(String name, String email) {
+        tvMenuUserFullName.setText(name);
+        tvMenuUserEmail.setText(email);
+    }
+
+    public void launchEditProfile() {
         Intent intent = new Intent(this, ProfileActivity.class);
         startActivity(intent);
     }
 
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_barcode) {
-            startBarcodeScanner();
-
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void startBarcodeScanner() {
+    private void launchBarcodeScanner() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
@@ -247,16 +188,45 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onBackPressed() {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_barcode) {
+            launchBarcodeScanner();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case BARCODE_SCANNER_REQUEST_CODE:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    startBarcodeScanner();
+                    launchBarcodeScanner();
                 } else {
                     Toast.makeText(this, "Please grant camera permission to use the QR Scanner", Toast.LENGTH_SHORT).show();
                 }
                 return;
+            default:
+                break;
         }
     }
 
@@ -267,13 +237,13 @@ public class MainActivity extends AppCompatActivity
             if (resultCode == Activity.RESULT_OK) {
                 String code = data.getStringExtra("barcodeData");
 
-                ExpenditureModel model = BarcodeScannerItemFactory.getExpenditureFromBarcode(code);
+                final ExpenditureModel model = BarcodeScannerItemFactory.getExpenditureFromBarcode(code);
                 if (model != null) {
                     switchFragment(FragmentType.DETAILS_EXPENDITURE);
                     detailsFragment.launchEditItem(this, FragmentType.DETAILS_EXPENDITURE, model);
                 }
             }
-        } else   if (requestCode == DetailsFragment.EDIT_ITEM_REQUEST_CODE) {
+        } else if (requestCode == DetailsFragment.EDIT_ITEM_REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
                 detailsFragment.onEditItemComplete(data);
             }
@@ -304,4 +274,5 @@ public class MainActivity extends AppCompatActivity
         super.onDestroy();
         db.close();
     }
+
 }

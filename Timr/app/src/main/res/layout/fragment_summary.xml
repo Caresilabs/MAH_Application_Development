@@ -53,6 +53,14 @@
         android:textStyle="bold"
         android:layout_marginBottom="8dp"/>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="summary"
+        android:id="@+id/tvSummaryMessage"
+        android:gravity="center"/>
+
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"

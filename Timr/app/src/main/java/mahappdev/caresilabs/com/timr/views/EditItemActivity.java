@@ -25,6 +25,7 @@ import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import mahappdev.caresilabs.com.timr.FragmentType;
 import mahappdev.caresilabs.com.timr.R;
 import mahappdev.caresilabs.com.timr.models.ExpenditureCategory;
 import mahappdev.caresilabs.com.timr.models.ExpenditureModel;
@@ -51,8 +52,8 @@ public class EditItemActivity extends AppCompatActivity {
     @BindString(R.string.required_fields)
     String requiredFieldsMessage;
 
-    private MainActivity.FragmentType categoryType;
-    private TimeItem                  model;
+    private FragmentType categoryType;
+    private TimeItem     model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,13 +62,22 @@ public class EditItemActivity extends AppCompatActivity {
 
         final Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            this.categoryType = MainActivity.FragmentType.values()[extras.getInt("type", 1)];
+            this.categoryType = FragmentType.values()[extras.getInt("type", 1)];
             this.model = new Gson().fromJson(extras.getString("model", null), TimeItem.class);
         } else {
-            this.categoryType = MainActivity.FragmentType.DETAILS_INCOME;
+            this.categoryType = FragmentType.DETAILS_INCOME;
         }
 
         initUI();
+    }
+
+    private void initUI() {
+        ButterKnife.bind(this);
+
+        // Category
+        String[] items = getNames(categoryType == FragmentType.DETAILS_INCOME ? IncomeCategory.class : ExpenditureCategory.class);
+        ArrayAdapter<CharSequence> adapter = new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_dropdown_item, items);
+        spnrCategory.setAdapter(adapter);
 
         updateFields();
     }
@@ -90,7 +100,7 @@ public class EditItemActivity extends AppCompatActivity {
             if (model.title != null)
                 etItemTitle.setText(model.title);
 
-            if (categoryType == MainActivity.FragmentType.DETAILS_INCOME) {
+            if (categoryType == FragmentType.DETAILS_INCOME) {
                 spnrCategory.setSelection(IncomeCategory.valueOf(model.category).ordinal());
             } else {
                 spnrCategory.setSelection(ExpenditureCategory.valueOf(model.category).ordinal());
@@ -119,16 +129,6 @@ public class EditItemActivity extends AppCompatActivity {
             btnItemTo.setText(formatTime(model.toTime));
     }
 
-    private void initUI() {
-        ButterKnife.bind(this);
-
-        // Category
-        String[] items = getNames(categoryType == MainActivity.FragmentType.DETAILS_INCOME ? IncomeCategory.class : ExpenditureCategory.class);
-        ArrayAdapter<CharSequence> adapter = new ArrayAdapter<CharSequence>(this,
-                android.R.layout.simple_spinner_dropdown_item, items);
-        spnrCategory.setAdapter(adapter);
-    }
-
     @OnClick(R.id.btnItemDate)
     void onItemDateClick() {
         Calendar now = Calendar.getInstance();
@@ -136,18 +136,13 @@ public class EditItemActivity extends AppCompatActivity {
                 new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
-                        String date = dayOfMonth + "/" + (monthOfYear + 1) + "/" + year;
-                        //btnToIncome.setText(date);
-
                         Calendar c = Calendar.getInstance();
                         c.set(year, monthOfYear, dayOfMonth);
                         model.date = c.getTime();
                         updateButtonTexts();
                     }
                 },
-                now.get(Calendar.YEAR),
-                now.get(Calendar.MONTH),
-                now.get(Calendar.DAY_OF_MONTH)
+                now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH)
         );
         dpd.show(getFragmentManager(), "Datepickerdialog");
     }
@@ -180,6 +175,7 @@ public class EditItemActivity extends AppCompatActivity {
 
     @OnClick(R.id.btnSaveItem)
     void onSaveItemClick() {
+        // Validate input
         if (TextUtils.isEmpty(etItemTitle.getText().toString()) ||
                 model.fromTime == 0 ||
                 model.toTime == 0 ||

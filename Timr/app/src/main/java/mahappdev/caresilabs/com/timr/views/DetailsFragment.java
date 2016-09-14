@@ -1,10 +1,13 @@
 package mahappdev.caresilabs.com.timr.views;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +22,7 @@ import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -27,9 +31,11 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import mahappdev.caresilabs.com.timr.DetailedListAdapter;
+import mahappdev.caresilabs.com.timr.FragmentType;
 import mahappdev.caresilabs.com.timr.R;
 import mahappdev.caresilabs.com.timr.controllers.DetailsController;
 import mahappdev.caresilabs.com.timr.controllers.MainController;
+import mahappdev.caresilabs.com.timr.models.DataModel;
 import mahappdev.caresilabs.com.timr.models.ExpenditureModel;
 import mahappdev.caresilabs.com.timr.models.IncomeModel;
 import mahappdev.caresilabs.com.timr.models.TimeItem;
@@ -63,11 +69,8 @@ public class DetailsFragment extends Fragment {
     private DetailsController controller;
     private int               startTab;
 
-    private Date fromIncomeDate;
-    private Date toIncomeDate;
-
-    private Date fromExpenditureDate;
-    private Date toExpenditureDate;
+    private DetailedListAdapter incomeAdapter;
+    private DetailedListAdapter expenditureAdapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -76,113 +79,69 @@ public class DetailsFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_details, container, false);
 
+        // Restore data
         if (savedInstanceState != null) {
-            fromIncomeDate = new Date(savedInstanceState.getLong("fromIncomeDate"));
-            toIncomeDate =  new Date(savedInstanceState.getLong("toIncomeDate"));
-            fromExpenditureDate = new Date(savedInstanceState.getLong("fromExpenditureDate"));
-            toExpenditureDate = new Date( savedInstanceState.getLong("toExpenditureDate"));
             startTab = savedInstanceState.getInt("currentTab");
-        } else {
-            // Income Time
-            Calendar cal = Calendar.getInstance();
-            cal.set(Calendar.HOUR_OF_DAY, 23);
-            cal.set(Calendar.MINUTE, 59);
-
-            toIncomeDate = new Date(cal.getTime().getTime());
-            cal.add(Calendar.MONTH, -1);
-            fromIncomeDate = new Date(cal.getTime().getTime());
-
-            // Expenditure Time
-            cal = Calendar.getInstance();
-            cal.set(Calendar.HOUR_OF_DAY, 23);
-            cal.set(Calendar.MINUTE, 59);
-
-            toExpenditureDate = new Date(cal.getTime().getTime());
-            cal.add(Calendar.MONTH, -1);
-            fromExpenditureDate = new Date(cal.getTime().getTime());
         }
-
-        // UI
-        ButterKnife.bind(this, view);
-        initTabs();
-        initActionButton(view);
-        refreshLists();
-
-        btnToIncome.setText(new SimpleDateFormat("dd/MM/yyyy").format(toIncomeDate));
-        btnFromIncome.setText(new SimpleDateFormat("dd/MM/yyyy").format(fromIncomeDate));
-
-        btnToExpenditure.setText(new SimpleDateFormat("dd/MM/yyyy").format(toExpenditureDate));
-        btnFromExpenditure.setText(new SimpleDateFormat("dd/MM/yyyy").format(fromExpenditureDate));
 
         this.controller = new DetailsController(this, mainController.getDB());
 
+        // UI
+        ButterKnife.bind(this, view);
+        this.controller.onInit(savedInstanceState);
+
+        // Init UI Components
+        {
+            initTabs();
+            initLists();
+            initActionButton(view);
+        }
+
         return view;
+    }
+
+    private void initLists() {
+        lwIncome.setAdapter(incomeAdapter = new DetailedListAdapter(getContext(), new ArrayList()));
+        lwIncome.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                launchEditItem(getActivity(), FragmentType.DETAILS_INCOME, (IncomeModel) incomeAdapter.getItem(position));
+            }
+        });
+
+        lwExpenditure.setAdapter(expenditureAdapter = new DetailedListAdapter(getContext(), new ArrayList()));
+        lwExpenditure.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                launchEditItem(getActivity(), FragmentType.DETAILS_EXPENDITURE, (ExpenditureModel) expenditureAdapter.getItem(position));
+            }
+        });
+
+        DetailsLongClickListener listener = new DetailsLongClickListener();
+        lwIncome.setOnItemLongClickListener(listener);
+        lwExpenditure.setOnItemLongClickListener(listener);
+
+        controller.refreshLists();
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         // Save filter
-        outState.putLong("fromIncomeDate", fromIncomeDate.getTime());
-        outState.putLong("toIncomeDate", toIncomeDate.getTime());
-        outState.putLong("fromExpenditureDate", fromExpenditureDate.getTime());
-        outState.putLong("toExpenditureDate", toExpenditureDate.getTime());
-
+        controller.onSave(outState);
         outState.putInt("currentTab", tabs.getCurrentTab());
         super.onSaveInstanceState(outState);
     }
 
-    private DetailedListAdapter incomeAdapter;
-    private DetailedListAdapter expenditureAdapter;
-
-    private void refreshLists() {
-        if (getActivity() == null)
-            return;
-
-        // Income List
-        String query = String.format("date >= %d AND date <= %d", fromIncomeDate.getTime(), toIncomeDate.getTime());
-        final List<IncomeModel> incomeRows = mainController.getDB().get(IncomeModel.class, query);
-
-        if (lwIncome.getAdapter() == null) {
-            lwIncome.setAdapter(incomeAdapter = new DetailedListAdapter(getContext(), incomeRows));
-            lwIncome.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    launchEditItem(getActivity() ,MainActivity.FragmentType.DETAILS_INCOME, (IncomeModel) incomeAdapter.getItem(position));
-                }
-            });
-        } else {
-            incomeAdapter.clear();
-            incomeAdapter.addAll(incomeRows);
-        }
-
-        // Expenditure List
-        query = String.format("date >= %d AND date <= %d", fromExpenditureDate.getTime(), toExpenditureDate.getTime());
-        final List<ExpenditureModel> expenditureRows  = mainController.getDB().get(ExpenditureModel.class, query);
-
-        if (lwExpenditure.getAdapter() == null) {
-            lwExpenditure.setAdapter(expenditureAdapter = new DetailedListAdapter(getContext(), expenditureRows));
-            lwExpenditure.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    launchEditItem(getActivity(), MainActivity.FragmentType.DETAILS_EXPENDITURE, (ExpenditureModel) expenditureAdapter.getItem(position));
-                }
-            });
-        } else {
-            expenditureAdapter.clear();
-            expenditureAdapter.addAll(expenditureRows);
-        }
-    }
-
     private void initActionButton(View view) {
-        // Floatin action bar
+        // Floating action bar
         FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (tabs.getCurrentTab() == 0) {
-                    launchEditItem(getActivity(), MainActivity.FragmentType.DETAILS_INCOME, null);
+                    launchEditItem(getActivity(), FragmentType.DETAILS_INCOME, null);
                 } else {
-                    launchEditItem(getActivity() ,MainActivity.FragmentType.DETAILS_EXPENDITURE, null);
+                    launchEditItem(getActivity(), FragmentType.DETAILS_EXPENDITURE, null);
                 }
             }
         });
@@ -207,60 +166,65 @@ public class DetailsFragment extends Fragment {
         tabs.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
             public void onTabChanged(String tabId) {
+                if (getActivity() == null)
+                    return;
+
                 if (tabs.getCurrentTab() == 0) {
-                    ((MainActivity) getActivity()).switchFragment(MainActivity.FragmentType.DETAILS_INCOME);
+                    mainController.switchFragment(FragmentType.DETAILS_INCOME);
                 } else {
-                    ((MainActivity) getActivity()).switchFragment(MainActivity.FragmentType.DETAILS_EXPENDITURE);
+                    mainController.switchFragment(FragmentType.DETAILS_EXPENDITURE);
                 }
             }
         });
     }
 
+    public void updateFilterText(Date toIncomeDate, Date fromIncomeDate, Date toExpenditureDate, Date fromExpenditureDate) {
+        btnToIncome.setText(new SimpleDateFormat("dd/MM/yyyy").format(toIncomeDate));
+        btnFromIncome.setText(new SimpleDateFormat("dd/MM/yyyy").format(fromIncomeDate));
+
+        btnToExpenditure.setText(new SimpleDateFormat("dd/MM/yyyy").format(toExpenditureDate));
+        btnFromExpenditure.setText(new SimpleDateFormat("dd/MM/yyyy").format(fromExpenditureDate));
+    }
+
+    public void refreshLists(List<IncomeModel> incomeRows, List<ExpenditureModel> expenditureRows) {
+        if (getActivity() == null)
+            return;
+
+        // Income List
+        incomeAdapter.clear();
+        incomeAdapter.addAll(incomeRows);
+
+        // Expenditure List
+        expenditureAdapter.clear();
+        expenditureAdapter.addAll(expenditureRows);
+    }
+
     @OnClick(R.id.btnFromIncome)
     void onFromIncomeClicked() {
-        Calendar now = Calendar.getInstance();
+        final Calendar now = Calendar.getInstance();
         final DatePickerDialog dpd = DatePickerDialog.newInstance(
                 new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
-                        String date = dayOfMonth + "/" + (monthOfYear + 1) + "/" + year;
-                        Calendar cal = Calendar.getInstance();
-                        cal.set(year, monthOfYear, dayOfMonth, 0, 0 );
-                        fromIncomeDate = new Date(cal.getTime().getTime());
-
-                        btnFromIncome.setText(date);
-
-                        refreshLists();
+                        controller.updateFromIncomeFilter(year, monthOfYear, dayOfMonth);
                     }
                 },
-                now.get(Calendar.YEAR),
-                now.get(Calendar.MONTH),
-                now.get(Calendar.DAY_OF_MONTH)
+                now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH)
         );
         dpd.show(getActivity().getFragmentManager(), "Datepickerdialog");
     }
 
     @OnClick(R.id.btnToIncome)
     void onToIncomeClicked() {
-        Calendar now = Calendar.getInstance();
+        final Calendar now = Calendar.getInstance();
         final DatePickerDialog dpd = DatePickerDialog.newInstance(
                 new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
-                        String date = dayOfMonth + "/" + (monthOfYear + 1) + "/" + year;
-
-                        Calendar cal = Calendar.getInstance();
-                        cal.set(year, monthOfYear, dayOfMonth, 0, 0);
-                        toIncomeDate = new Date(cal.getTime().getTime());
-
-                        btnToIncome.setText(date);
-
-                        refreshLists();
+                        controller.updateToIncomeFilter(year, monthOfYear, dayOfMonth);
                     }
                 },
-                now.get(Calendar.YEAR),
-                now.get(Calendar.MONTH),
-                now.get(Calendar.DAY_OF_MONTH)
+                now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH)
         );
         dpd.show(getActivity().getFragmentManager(), "Datepickerdialog");
     }
@@ -272,19 +236,10 @@ public class DetailsFragment extends Fragment {
                 new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
-                        String date = dayOfMonth + "/" + (monthOfYear + 1) + "/" + year;
-                        Calendar cal = Calendar.getInstance();
-                        cal.set(year, monthOfYear, dayOfMonth, 0, 0);
-                        fromExpenditureDate = new Date(cal.getTime().getTime());
-
-                        btnFromExpenditure.setText(date);
-
-                        refreshLists();
+                        controller.updateFromExpenditureFilter(year, monthOfYear, dayOfMonth);
                     }
                 },
-                now.get(Calendar.YEAR),
-                now.get(Calendar.MONTH),
-                now.get(Calendar.DAY_OF_MONTH)
+                now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH)
         );
         dpd.show(getActivity().getFragmentManager(), "Datepickerdialog");
     }
@@ -296,20 +251,10 @@ public class DetailsFragment extends Fragment {
                 new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
-                        String date = dayOfMonth + "/" + (monthOfYear + 1) + "/" + year;
-
-                        Calendar cal = Calendar.getInstance();
-                        cal.set(year, monthOfYear, dayOfMonth, 0, 0);
-                        toExpenditureDate = new Date(cal.getTime().getTime());
-
-                        btnToExpenditure.setText(date);
-
-                        refreshLists();
+                        controller.updateToExpenditureFilter(year, monthOfYear, dayOfMonth);
                     }
                 },
-                now.get(Calendar.YEAR),
-                now.get(Calendar.MONTH),
-                now.get(Calendar.DAY_OF_MONTH)
+                now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH)
         );
         dpd.show(getActivity().getFragmentManager(), "Datepickerdialog");
     }
@@ -322,11 +267,7 @@ public class DetailsFragment extends Fragment {
         }
     }
 
-    public void setController(MainController controller) {
-        this.mainController = controller;
-    }
-
-    public void launchEditItem(Activity activity, MainActivity.FragmentType type, TimeItem data) {
+    public void launchEditItem(Activity activity, FragmentType type, TimeItem data) {
         Intent intent = new Intent(activity, EditItemActivity.class);
         intent.putExtra("type", type.ordinal());
         intent.putExtra("model", new Gson().toJson(data));
@@ -334,13 +275,41 @@ public class DetailsFragment extends Fragment {
     }
 
     public void onEditItemComplete(Intent data) {
+        TimeItem model = null;
         if (tabs.getCurrentTab() == 0) {
-            IncomeModel model = new Gson().fromJson(data.getStringExtra("model"), IncomeModel.class);
-            controller.updateModel(model);
+            model = new Gson().fromJson(data.getStringExtra("model"), IncomeModel.class);
         } else {
-            ExpenditureModel model = new Gson().fromJson(data.getStringExtra("model"), ExpenditureModel.class);
-            controller.updateModel(model);
+            model = new Gson().fromJson(data.getStringExtra("model"), ExpenditureModel.class);
         }
-        refreshLists();
+        controller.updateModel(model);
+    }
+
+    public void setController(MainController controller) {
+        this.mainController = controller;
+    }
+
+    private class DetailsLongClickListener implements AdapterView.OnItemLongClickListener {
+        @Override
+        public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle("Delete");
+            builder.setMessage("Are you sure you want to delete?");
+            builder.setIcon(android.R.drawable.ic_dialog_alert);
+            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int ii) {
+                    mainController.getDB().remove((DataModel) parent.getItemAtPosition(position));
+                    controller.refreshLists();
+                }
+            });
+
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int ii) {
+                            dialog.dismiss();
+                        }
+                    }
+            );
+            builder.show();
+            return true;
+        }
     }
 }

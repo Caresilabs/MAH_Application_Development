@@ -69,6 +69,14 @@
             android:layout_marginBottom="8dp"
             android:layout_marginTop="10dp"/>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="summary"
+            android:id="@+id/tvSummaryMessage"
+            android:gravity="center"/>
+
         <com.github.mikephil.charting.charts.PieChart
             android:id="@+id/pieSummary"
             android:layout_width="match_parent"

@@ -62,6 +62,19 @@
             android:singleLine="true"
             android:inputType="textEmailAddress"/>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="@string/password"
+            android:id="@+id/textView2"/>
+
+        <mahappdev.caresilabs.com.timr.views.PasswordEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/etPassword"
+            android:singleLine="true"/>
+
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"

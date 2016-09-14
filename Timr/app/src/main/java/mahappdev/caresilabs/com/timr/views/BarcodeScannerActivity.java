@@ -17,9 +17,8 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ZXingSc
     @Override
     public void onCreate(Bundle state) {
         super.onCreate(state);
-        //scannerView = new ZXingScannerView(this);   // Programmatically initialize the scanner view
-        setContentView(R.layout.activity_barcode_scanner);                // Set the scanner view as the content view
-        scannerView = (ZXingScannerView) findViewById(R.id.scannerView);
+        this.setContentView(R.layout.activity_barcode_scanner);
+        this.scannerView = (ZXingScannerView) findViewById(R.id.scannerView);
     }
 
     @Override
@@ -37,10 +36,6 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ZXingSc
 
     @Override
     public void handleResult(Result rawResult) {
-        // Do something with the result here
-       // Log.v(TAG, rawResult.getText()); // Prints scan results
-       // Log.v(TAG, rawResult.getBarcodeFormat().toString()); // Prints the scan format (qrcode, pdf417 etc.)
-
         // Send back model
         Intent data = new Intent();
         data.putExtra("barcodeData", rawResult.getText());

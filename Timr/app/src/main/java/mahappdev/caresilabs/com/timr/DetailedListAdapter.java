@@ -5,11 +5,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
 
+import mahappdev.caresilabs.com.timr.models.ExpenditureCategory;
+import mahappdev.caresilabs.com.timr.models.IncomeCategory;
+import mahappdev.caresilabs.com.timr.models.IncomeModel;
 import mahappdev.caresilabs.com.timr.models.TimeItem;
 import mahappdev.caresilabs.com.timr.views.EditItemActivity;
 
@@ -24,9 +28,10 @@ public class DetailedListAdapter<T extends TimeItem> extends ArrayAdapter<T> {
 
     // View lookup cache
     private static class ViewHolder {
-        TextView tvTitle;
-        TextView tvSubTitle1;
-        TextView tvSubTitle2;
+        TextView  tvTitle;
+        TextView  tvSubTitle1;
+        TextView  tvSubTitle2;
+        ImageView iwIcon;
     }
 
     @Override
@@ -44,6 +49,7 @@ public class DetailedListAdapter<T extends TimeItem> extends ArrayAdapter<T> {
             viewHolder.tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
             viewHolder.tvSubTitle1 = (TextView) convertView.findViewById(R.id.tvSubTitle1);
             viewHolder.tvSubTitle2 = (TextView) convertView.findViewById(R.id.tvSubTitle2);
+            viewHolder.iwIcon = (ImageView) convertView.findViewById(R.id.iwItemIcon);
 
             convertView.setTag(viewHolder);
         } else {
@@ -52,10 +58,17 @@ public class DetailedListAdapter<T extends TimeItem> extends ArrayAdapter<T> {
         viewHolder.tvTitle.setText(data.title + " - " + Math.max(0, data.toTime - data.fromTime) + "min");
         viewHolder.tvSubTitle1.setText(data.category);
 
-        String from = EditItemActivity.formatTime(data.fromTime);// (int) (data.fromTime / 60) + ":" + (data.fromTime % 60));
-        String to = EditItemActivity.formatTime(data.toTime);//((int) (data.toTime / 60) + ":" + (data.toTime % 60));
+        if (data instanceof IncomeModel) {
+            viewHolder.iwIcon.setImageResource(IncomeCategory.valueOf(data.category).getIcon());
+        } else {
+            viewHolder.iwIcon.setImageResource(ExpenditureCategory.valueOf(data.category).getIcon());
+        }
+
+        String from = EditItemActivity.formatTime(data.fromTime);
+        String to = EditItemActivity.formatTime(data.toTime);
         String theDate = new SimpleDateFormat("dd/MM/yyyy").format(data.date);
         viewHolder.tvSubTitle2.setText(theDate + " (" + from + " - " + to + ")");
+
         return convertView;
 
     }
