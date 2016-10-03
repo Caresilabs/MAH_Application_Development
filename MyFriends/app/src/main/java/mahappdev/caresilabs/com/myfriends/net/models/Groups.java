@@ -1,4 +1,4 @@
-package mahappdev.caresilabs.com.myfriends.models;
+package mahappdev.caresilabs.com.myfriends.net.models;
 
 import java.util.List;
 import java.util.Map;

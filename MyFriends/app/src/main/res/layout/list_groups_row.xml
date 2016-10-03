@@ -16,6 +16,6 @@
         android:text="TextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/textView"
+        android:id="@+id/tvNumUsers"
         tools:text="1 of 20"/>
 </LinearLayout>

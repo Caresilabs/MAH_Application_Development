@@ -4,8 +4,6 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -25,8 +23,7 @@ import android.widget.TextView;
 
 import mahappdev.caresilabs.com.myfriends.R;
 import mahappdev.caresilabs.com.myfriends.controllers.MainController;
-import mahappdev.caresilabs.com.myfriends.models.Groups;
-import mahappdev.caresilabs.com.myfriends.models.NetMessage;
+import mahappdev.caresilabs.com.myfriends.net.models.NetMessage;
 import mahappdev.caresilabs.com.myfriends.net.ClientService;
 import mahappdev.caresilabs.com.myfriends.net.INetworkResponseCallback;
 
@@ -80,6 +77,8 @@ public class MainActivity extends AppCompatActivity implements INetworkResponseC
         /////////
 
         this.controller = new MainController(this, groupsFragment, mapsFragment);
+
+        groupsFragment.setController(controller);
 
         Intent intent = new Intent(this, ClientService.class);
         intent.putExtra("IpAddress", getString(R.string.ip_address));
@@ -157,6 +156,10 @@ public class MainActivity extends AppCompatActivity implements INetworkResponseC
         return super.onOptionsItemSelected(item);
     }
 
+
+    public ViewPager getViewPager() {
+        return viewPager;
+    }
 
     /**
      * A placeholder fragment containing a simple view.

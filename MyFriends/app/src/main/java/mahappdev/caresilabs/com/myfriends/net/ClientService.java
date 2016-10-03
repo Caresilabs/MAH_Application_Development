@@ -13,8 +13,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 
-import mahappdev.caresilabs.com.myfriends.models.LogMessage;
-import mahappdev.caresilabs.com.myfriends.models.NetMessage;
+import mahappdev.caresilabs.com.myfriends.net.models.LogMessage;
+import mahappdev.caresilabs.com.myfriends.net.models.NetMessage;
 
 public class ClientService extends Service {
     //public static final String IP="IP",PORT="PORT"; //

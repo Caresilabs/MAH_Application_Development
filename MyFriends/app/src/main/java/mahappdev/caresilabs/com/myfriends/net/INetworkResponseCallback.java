@@ -1,6 +1,6 @@
 package mahappdev.caresilabs.com.myfriends.net;
 
-import mahappdev.caresilabs.com.myfriends.models.NetMessage;
+import mahappdev.caresilabs.com.myfriends.net.models.NetMessage;
 
 /**
  * Created by Simon on 10/2/2016.

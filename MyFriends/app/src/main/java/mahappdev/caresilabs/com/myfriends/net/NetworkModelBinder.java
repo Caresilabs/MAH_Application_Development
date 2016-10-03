@@ -5,11 +5,12 @@ import com.google.gson.JsonObject;
 
 import java.util.HashMap;
 
-import mahappdev.caresilabs.com.myfriends.models.LogMessage;
-import mahappdev.caresilabs.com.myfriends.models.Groups;
-import mahappdev.caresilabs.com.myfriends.models.Members;
-import mahappdev.caresilabs.com.myfriends.models.NetMessage;
-import mahappdev.caresilabs.com.myfriends.models.Register;
+import mahappdev.caresilabs.com.myfriends.net.models.Locations;
+import mahappdev.caresilabs.com.myfriends.net.models.LogMessage;
+import mahappdev.caresilabs.com.myfriends.net.models.Groups;
+import mahappdev.caresilabs.com.myfriends.net.models.Members;
+import mahappdev.caresilabs.com.myfriends.net.models.NetMessage;
+import mahappdev.caresilabs.com.myfriends.net.models.Register;
 
 /**
  * Created by Simon on 10/2/2016.
@@ -28,6 +29,7 @@ public class NetworkModelBinder {
         types.put("register", Register.Response.class);
         types.put("groups", Groups.Response.class);
         types.put("members", Members.Response.class);
+        types.put("location", Locations.Response.class);
         types.put("exception", LogMessage.class);
     }
 

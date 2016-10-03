@@ -11,7 +11,6 @@ import android.widget.TextView;
 import java.util.List;
 
 import mahappdev.caresilabs.com.myfriends.models.GroupListRow;
-import mahappdev.caresilabs.com.myfriends.models.Groups;
 
 /**
  * Created by Simon on 10/3/2016.
@@ -26,7 +25,7 @@ public class GroupsListAdapter extends ArrayAdapter<GroupListRow> {
     // View lookup cache
     private static class ViewHolder {
         TextView  tvTitle;
-        TextView  tvSubTitle1;
+        TextView  tvNumUsers;
         TextView  tvSubTitle2;
         ImageView iwIcon;
     }
@@ -45,8 +44,8 @@ public class GroupsListAdapter extends ArrayAdapter<GroupListRow> {
             convertView = inflater.inflate(R.layout.list_groups_row, parent, false);
 
            viewHolder.tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
-           /*  viewHolder.tvSubTitle1 = (TextView) convertView.findViewById(R.id.tvSubTitle1);
-            viewHolder.tvSubTitle2 = (TextView) convertView.findViewById(R.id.tvSubTitle2);
+          viewHolder.tvNumUsers = (TextView) convertView.findViewById(R.id.tvNumUsers);
+            /*   viewHolder.tvSubTitle2 = (TextView) convertView.findViewById(R.id.tvSubTitle2);
             viewHolder.iwIcon = (ImageView) convertView.findViewById(R.id.iwItemIcon);*/
 
             convertView.setTag(viewHolder);
@@ -55,6 +54,7 @@ public class GroupsListAdapter extends ArrayAdapter<GroupListRow> {
         }
 
         viewHolder.tvTitle.setText(data.name);
+        viewHolder.tvNumUsers.setText(data.users);
 
         return convertView;
 

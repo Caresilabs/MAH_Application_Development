@@ -1,4 +1,4 @@
-package mahappdev.caresilabs.com.myfriends.models;
+package mahappdev.caresilabs.com.myfriends.net.models;
 
 /**
  * Created by Simon on 10/2/2016.
