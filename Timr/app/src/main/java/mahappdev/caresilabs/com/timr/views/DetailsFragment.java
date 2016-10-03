@@ -1,6 +1,7 @@
 package mahappdev.caresilabs.com.timr.views;
 
 import android.app.Activity;
+import android.app.IntentService;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
