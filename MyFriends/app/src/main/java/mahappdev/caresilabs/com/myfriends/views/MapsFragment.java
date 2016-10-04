@@ -19,13 +19,19 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import mahappdev.caresilabs.com.myfriends.R;
+import mahappdev.caresilabs.com.myfriends.controllers.MainController;
+import mahappdev.caresilabs.com.myfriends.models.DataModel;
 
 public class MapsFragment extends Fragment implements OnMapReadyCallback, LocationListener {
+
     private GoogleMap       map;
     private LocationManager locationManager;
+    private MainController  controller;
+    private Marker          myLocationMarker;
 
     public MapsFragment() {
     }
@@ -52,12 +58,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Locati
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_maps, container, false);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.mapView);
 
-        // MapView mapFragment = (SupportMapFragment) view.findViewById(R.id.mapView);
         mapFragment.getMapAsync(this);
 
         // setuping locatiomanager to perfrom location related operations
@@ -74,10 +78,16 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Locati
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-           // return TODO;
+            // return TODO;
         } else {
             locationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER, 200, 2, this);
+
+         /*   Location lastLocation = locationManager.getLastKnownLocation
+                    (LocationManager.PASSIVE_PROVIDER);
+
+            LatLng currentLocation = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+            Marker marker = map.addMarker(new MarkerOptions().position(memberPos).title(member.name));*/
         }
 
         return view;
@@ -90,12 +100,18 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Locati
 
     @Override
     public void onLocationChanged(Location location) {
-       // location.getLatitude();
-        map.clear();
+        LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
-        LatLng sydney = new LatLng(location.getLatitude(), location.getLongitude());
-        map.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        map.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        // Update marker
+        if (myLocationMarker != null)
+            myLocationMarker.setPosition(myLocation);
+
+        // Move and zoom camera
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 8f));
+
+        // Notify controller
+        if (controller != null)
+            controller.setMyLocation(location.getLatitude(), location.getLongitude());
     }
 
     @Override
@@ -111,5 +127,25 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Locati
     @Override
     public void onProviderDisabled(String provider) {
 
+    }
+
+    public void updateMarkers(DataModel.GroupModel group, String myName) {
+        map.clear();
+
+        for (DataModel.MemberModel member : group.members.values()) {
+            if (member.latitude == null) {
+                continue;
+            }
+
+            LatLng memberPos = new LatLng(Double.parseDouble(member.latitude), Double.parseDouble(member.longitude));
+            Marker marker = map.addMarker(new MarkerOptions().position(memberPos).title(member.name));
+            if (member.name.equals(myName)) {
+                myLocationMarker = marker;
+            }
+        }
+    }
+
+    public void setController(MainController controller) {
+        this.controller = controller;
     }
 }

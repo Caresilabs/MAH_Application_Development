@@ -33,7 +33,7 @@ import mahappdev.caresilabs.com.myfriends.models.GroupListRow;
  * Use the {@link GroupsFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class GroupsFragment extends Fragment {
+public class GroupsFragment extends Fragment implements GroupsListAdapter.IGroupListListener {
 
     @BindView(R.id.lwGroups)
     ListView lwGroups;
@@ -87,9 +87,8 @@ public class GroupsFragment extends Fragment {
 
                     alert.setPositiveButton("Create", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
-                            //What ever you want to do with the value
                             String name = edittext.getText().toString();
-                            controller.joinRoom(name);
+                            controller.updateSubscription(name, true);
                         }
                     });
 
@@ -104,38 +103,48 @@ public class GroupsFragment extends Fragment {
             }
         });
 
+        if (controller != null)
+            controller.refreshGroups();
+
         return view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        controller.refreshGroups();
     }
 
     private void initList() {
-        lwGroups.setAdapter(groupsAdapter = new GroupsListAdapter(getContext(), new ArrayList()));
-        lwGroups.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                controller.joinRoom(groupsAdapter.getItem(position).name);
-                //launchEditItem(getActivity(), FragmentType.DETAILS_INCOME, (IncomeModel) incomeAdapter.getItem(position));
-            }
-        });
+        lwGroups.setAdapter(groupsAdapter = new GroupsListAdapter(getContext(), new ArrayList(), this));
     }
 
-    public void refreshGroups(Collection<DataModel.GroupModel> groups) {
+    public void refreshGroups(Collection<DataModel.GroupModel> groups, String myName, String currentRoom) {
+        if (groupsAdapter == null)
+            return;
+
         groupsAdapter.clear();
 
-        List<GroupListRow> rows = new ArrayList<>();
+        final List<GroupListRow> rows = new ArrayList<>();
         for (DataModel.GroupModel group : groups) {
             GroupListRow row = new GroupListRow();
             row.name = group.name;
             row.users = group.members.size() + " of 20";
+            row.isJoined = group.members.containsKey(myName);
+            row.isCurrent = group.name.equals(currentRoom);
             rows.add(row);
         }
 
         groupsAdapter.addAll(rows);
+    }
+
+    @Override
+    public void onActiveChanged(CharSequence text) {
+        controller.setActiveRoom(text.toString());
+    }
+
+    @Override
+    public void onSubscribedChanged(CharSequence text, boolean isChecked) {
+        controller.updateSubscription(text.toString(), isChecked);
     }
 
     public void setController(MainController controller) {

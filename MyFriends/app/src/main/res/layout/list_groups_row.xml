@@ -1,21 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:tools="http://schemas.android.com/tools"
-              android:orientation="vertical"
+              android:orientation="horizontal"
               android:layout_width="match_parent"
-              android:layout_height="match_parent">
+              android:layout_height="wrap_content"
+              android:layout_margin="6dp">
 
-    <TextView
-        android:text="TextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/tvTitle"
-        tools:text="Room Name"/>
+    <RadioButton
+        android:text="Active"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:paddingRight="16dp"
+        android:id="@+id/rbActive"
+        />
 
-    <TextView
-        android:text="TextView"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/tvNumUsers"
-        tools:text="1 of 20"/>
+        android:layout_weight="1"
+        android:gravity="center">
+
+        <TextView
+            android:text="TextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/tvTitle"
+            tools:text="Room Name"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            android:gravity="center"/>
+
+        <TextView
+            android:text="TextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/tvNumUsers"
+            tools:text="1 of 20"
+            android:gravity="center"/>
+
+    </LinearLayout>
+
+    <Switch
+        android:text="Subscribed"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:id="@+id/swSubscribed"
+        android:gravity="right|center_vertical"
+        />
+
 </LinearLayout>

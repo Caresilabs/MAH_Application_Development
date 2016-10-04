@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:padding="6dp">
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvChatMemberName"
+        android:paddingRight="6dp"
+        android:paddingLeft="6dp"/>
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvChatMessage"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"/>
+</LinearLayout>

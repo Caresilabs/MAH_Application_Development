@@ -21,5 +21,7 @@ public class Register {
 
     public static class Response extends NetMessage {
         public String id;
+
+        public String group;
     }
 }

@@ -11,7 +11,11 @@ import java.util.Map;
 
 public class DataModel {
 
-    public List<String> userIds = new ArrayList<>();
+    public String myName = "Apple Pie";
+
+    public Map<String, String> userIds = new HashMap<>();
+
+    public String currentGroupName;
 
     public Map<String, GroupModel> groups = new HashMap<>();
 
@@ -23,7 +27,7 @@ public class DataModel {
 
         public String name;
 
-        public List<MemberModel> members = new ArrayList<>();
+        public Map<String, MemberModel> members = new HashMap<>();
     }
 
     public static class MemberModel {
@@ -34,8 +38,8 @@ public class DataModel {
 
         public String name;
 
-        public double longitude;
+        public String longitude;
 
-        public double latitude;
+        public String latitude;
     }
 }
