@@ -59,12 +59,18 @@ public class GroupsListAdapter extends ArrayAdapter<GroupListRow> {
                 @Override
                 public void onClick(View v) {
                     RadioButton rb = (RadioButton) v;
+
+                    if (!viewHolder.swSubscribed.isChecked()) {
+                        rb.setChecked(false);
+                        return;
+                    }
+
                     if (currentRadioBtn != null && currentRadioBtn != rb) {
                         //if (!rb.getTag().equals(currentRadioBtn.getTag()))
                         currentRadioBtn.setChecked(false);
                     }
                     currentRadioBtn = rb;
-                    listener.onActiveChanged(data.name);
+                    listener.onActiveChanged(viewHolder.tvTitle.getText());
                 }
             });
 
@@ -72,7 +78,7 @@ public class GroupsListAdapter extends ArrayAdapter<GroupListRow> {
             viewHolder.swSubscribed.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    listener.onSubscribedChanged(data.name, viewHolder.swSubscribed.isChecked());
+                    listener.onSubscribedChanged(viewHolder.tvTitle.getText(), viewHolder.swSubscribed.isChecked());
                 }
             });
          /*   viewHolder.swSubscribed.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

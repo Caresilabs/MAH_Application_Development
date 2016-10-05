@@ -15,7 +15,8 @@
         android:layout_weight="100"
         android:transcriptMode="alwaysScroll"
         android:listSelector="@android:color/transparent"
-        android:stackFromBottom="true"/>
+        android:stackFromBottom="true"
+        android:divider="@null"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -23,6 +24,7 @@
         android:layout_margin="3dp"
         android:layout_weight="1"
         android:background="@drawable/ic_shadow"
+        android:divider="@null"
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
@@ -37,7 +39,7 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Send"
+            android:text="@string/send"
             android:id="@+id/btnChatSend"
             android:layout_marginRight="6dp"
             android:layout_marginBottom="1dp"/>

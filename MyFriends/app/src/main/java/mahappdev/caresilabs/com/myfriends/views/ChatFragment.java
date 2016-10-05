@@ -26,6 +26,7 @@ import mahappdev.caresilabs.com.myfriends.ChatListAdapter;
 import mahappdev.caresilabs.com.myfriends.R;
 import mahappdev.caresilabs.com.myfriends.controllers.MainController;
 import mahappdev.caresilabs.com.myfriends.models.ChatListRow;
+import mahappdev.caresilabs.com.myfriends.models.DataModel;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -56,10 +57,7 @@ public class ChatFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-       /* if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }*/
+        chatListAdaper = new ChatListAdapter(getActivity(), new ArrayList<ChatListRow>());
     }
 
     @Override
@@ -70,7 +68,7 @@ public class ChatFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
         ButterKnife.bind(this, view);
 
-        lwChat.setAdapter(chatListAdaper = new ChatListAdapter(getActivity(), new ArrayList<ChatListRow>() ));
+        lwChat.setAdapter(chatListAdaper);
 
         return view;
     }
@@ -85,11 +83,11 @@ public class ChatFragment extends Fragment {
         etChat.getText().clear();
     }
 
-    public void addChatMessage(String member, String text, boolean isUser) {
+    public void addChatMessage(DataModel.ChatModel chat) {
         ChatListRow row = new ChatListRow();
-        row.name = member;
-        row.message = text;
-        row.isUser = isUser;
+        row.name = chat.member;
+        row.message = chat.message;
+        row.isUser = chat.isUser;
         chatListAdaper.add(row);
     }
 

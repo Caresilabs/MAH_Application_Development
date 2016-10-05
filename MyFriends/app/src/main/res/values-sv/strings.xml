@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mina Vänner</string>
+    <string name="title_activity_maps">Karta</string>
+
+    <string name="title_activity_main">Mina Vänner</string>
+    <string name="action_profile">Profil</string>
+
+    <string name="group">Grupp</string>
+    <string name="map">Karta</string>
+    <string name="chat">Chatt</string>
+
+    <string name="save">Spara!</string>
+    <string name="alias">Alias</string>
+    <string name="edit_profile_title">Ändra Profil</string>
+    <string name="required_fields">Var snäll och fyll i alla fällt!</string>
+    <string name="language">Språk</string>
+    <string name="send">Skicka</string>
+    <string name="subscribed">Prenumererad</string>
+    <string name="active">Aktiv</string>
+    <string name="msg_join_before_chat">Var snäll att gå med ett grupp före du startar chatta!</string>
+    <string name="unregistered_room">Avregistrerade Grupp</string>
+    <string name="no_connection">Ingen Anslutning</string>
+    <string name="joined_room">Gick med i grupp: </string>
+
+    <string name="new_group">Ny Grupp</string>
+    <string name="enter_group_name">Fyll i ett gruppnamn.</string>
+    <string name="create">Skapa</string>
+    <string name="cancel">Avbryt</string>
+    <string name="msg_cant_add_more">Kan inte lägga till fler än 20 grupper!</string>
+</resources>

@@ -7,7 +7,7 @@
               android:layout_margin="6dp">
 
     <RadioButton
-        android:text="Active"
+        android:text="@string/active"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:paddingRight="16dp"
@@ -41,7 +41,7 @@
     </LinearLayout>
 
     <Switch
-        android:text="Subscribed"
+        android:text="@string/subscribed"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:id="@+id/swSubscribed"

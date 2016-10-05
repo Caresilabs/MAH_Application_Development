@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -13,21 +14,21 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 
-import android.widget.TextView;
-
+import mahappdev.caresilabs.com.myfriends.LocaleHelper;
 import mahappdev.caresilabs.com.myfriends.R;
 import mahappdev.caresilabs.com.myfriends.controllers.MainController;
+import mahappdev.caresilabs.com.myfriends.models.ProfileModel;
 import mahappdev.caresilabs.com.myfriends.net.models.NetMessage;
 import mahappdev.caresilabs.com.myfriends.net.ClientService;
 import mahappdev.caresilabs.com.myfriends.net.INetworkResponseCallback;
+import mahappdev.caresilabs.com.myfriends.repository.PreferenceRepository;
 
 public class MainActivity extends AppCompatActivity implements INetworkResponseCallback {
+
+    public static final String PREFS_NAME = "friends.pref";
 
     private SectionsPagerAdapter sectionsPagerAdapter;
     private ViewPager            viewPager;
@@ -38,53 +39,71 @@ public class MainActivity extends AppCompatActivity implements INetworkResponseC
     private MapsFragment   mapsFragment;
     private ChatFragment   chatFragment;
 
+    private PreferenceRepository prefs;
 
     private MyServiceConnection serviceConn;
+    private ClientService       connection;
     private boolean bound = false;
-    private ClientService connection;
-    private boolean       connected;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        this.prefs = new PreferenceRepository(getSharedPreferences(PREFS_NAME, MODE_PRIVATE));
+
+        // update language
+        final ProfileModel profile = prefs.get(ProfileModel.class, 0);
+        LocaleHelper.onCreate(this, profile.language);
+
         setContentView(R.layout.activity_main);
+
+
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
         sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
         viewPager = (ViewPager) findViewById(R.id.container);
         viewPager.setAdapter(sectionsPagerAdapter);
         viewPager.setCurrentItem(1);
+        viewPager.setOffscreenPageLimit(2);
 
-
-        /////////
-
-        // Fragments and Controllers
-        {
-            this.mapsFragment = MapsFragment.newInstance();
-            this.groupsFragment = GroupsFragment.newInstance();
-            this.chatFragment = ChatFragment.newInstance();
-
-            this.controller = new MainController(this, groupsFragment, mapsFragment, chatFragment);
-
-           /* this.groupsFragment.setController(controller);
-            this.mapsFragment.setController(controller);
-            this.chatFragment.setController(controller);*/
+        // Restore fragments
+        if (getSupportFragmentManager().getFragments() != null) {
+            for (Fragment frag : getSupportFragmentManager().getFragments()) {
+                if (frag instanceof GroupsFragment) {
+                    this.groupsFragment = (GroupsFragment) frag;
+                } else if (frag instanceof MapsFragment) {
+                    this.mapsFragment = (MapsFragment) frag;
+                } else if (frag instanceof ChatFragment) {
+                    this.chatFragment = (ChatFragment) frag;
+                }
+            }
         }
 
+        // Fragments and Controllers
+        if (mapsFragment == null)
+            this.mapsFragment = MapsFragment.newInstance();
+        if (groupsFragment == null)
+            this.groupsFragment = GroupsFragment.newInstance();
+        if (chatFragment == null)
+            this.chatFragment = ChatFragment.newInstance();
+
+        this.controller = new MainController(this, groupsFragment, mapsFragment,
+                chatFragment, savedInstanceState != null ? savedInstanceState.getString("model", null) : null);
+
+        initClient(savedInstanceState);
+    }
+
+    private void initClient(Bundle savedInstanceState) {
         Intent intent = new Intent(this, ClientService.class);
         intent.putExtra("IpAddress", getString(R.string.ip_address));
         intent.putExtra("TcpPort", getResources().getInteger(R.integer.tcp_port));
 
         if (savedInstanceState == null)
             startService(intent);
-        else
-            connected = savedInstanceState.getBoolean("CONNECTED", false);
 
         serviceConn = new MyServiceConnection();
         boolean result = bindService(intent, serviceConn, 0);
@@ -93,13 +112,38 @@ public class MainActivity extends AppCompatActivity implements INetworkResponseC
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("model", controller.onSave());
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+
+        updateAndCheckUserProfile();
+
         groupsFragment.setController(controller);
         mapsFragment.setController(controller);
         this.chatFragment.setController(controller);
 
-        controller.refreshGroups();
+        if (connection != null) {
+            // Try connecting if socket is null
+            connection.connect(true);
+
+            controller.refreshGroups();
+        }
+    }
+
+    private void updateAndCheckUserProfile() {
+        // if we haven't filled in profile yet.
+        final ProfileModel profile = prefs.get(ProfileModel.class, 0);
+        if (profile == null) {
+            Intent intent = new Intent(this, ProfileActivity.class);
+            startActivity(intent);
+        } else {
+            controller.setName(profile.alias);
+        }
     }
 
     @Override
@@ -119,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements INetworkResponseC
             bound = true;
 
             connection.setListener(MainActivity.this);
-            connection.connect();
+            connection.connect(true);
 
             controller.setClient(connection);
         }
@@ -132,10 +176,13 @@ public class MainActivity extends AppCompatActivity implements INetworkResponseC
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (bound) {
+        if (isFinishing()) {
+            controller.unjoinAll();
             connection.disconnect();
             connection.setListener(null);
+        }
 
+        if (bound) {
             bound = false;
             unbindService(serviceConn);
         }
@@ -143,7 +190,6 @@ public class MainActivity extends AppCompatActivity implements INetworkResponseC
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
@@ -153,6 +199,8 @@ public class MainActivity extends AppCompatActivity implements INetworkResponseC
         int id = item.getItemId();
 
         if (id == R.id.action_settings) {
+            Intent intent = new Intent(this, ProfileActivity.class);
+            startActivity(intent);
             return true;
         }
 
@@ -164,10 +212,6 @@ public class MainActivity extends AppCompatActivity implements INetworkResponseC
         return viewPager;
     }
 
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
         public SectionsPagerAdapter(FragmentManager fm) {
@@ -198,11 +242,11 @@ public class MainActivity extends AppCompatActivity implements INetworkResponseC
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "Groups";
+                    return getString(R.string.group);
                 case 1:
-                    return "Map";
+                    return getString(R.string.map);
                 case 2:
-                    return "Chat";
+                    return getString(R.string.chat);
             }
             return null;
         }

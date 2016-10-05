@@ -11,13 +11,15 @@ import java.util.Map;
 
 public class DataModel {
 
-    public String myName = "Apple Pie";
+    public String myName;
 
     public Map<String, String> userIds = new HashMap<>();
 
     public String currentGroupName;
 
     public Map<String, GroupModel> groups = new HashMap<>();
+
+    public Map<String, ChatModel> chats = new HashMap<>();
 
     public static class GroupModel {
 
@@ -28,6 +30,7 @@ public class DataModel {
         public String name;
 
         public Map<String, MemberModel> members = new HashMap<>();
+
     }
 
     public static class MemberModel {
@@ -41,5 +44,15 @@ public class DataModel {
         public String longitude;
 
         public String latitude;
+    }
+
+    public static class ChatModel {
+        public String member;
+
+        public String message;
+
+        public boolean isUser;
+
+        public String imagePath;
     }
 }

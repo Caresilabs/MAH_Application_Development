@@ -45,8 +45,6 @@ public class GroupsFragment extends Fragment implements GroupsListAdapter.IGroup
     public static GroupsFragment newInstance() {
         GroupsFragment fragment = new GroupsFragment();
         Bundle args = new Bundle();
-       // args.putString(ARG_PARAM1, param1);
-       // args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
     }
@@ -54,10 +52,6 @@ public class GroupsFragment extends Fragment implements GroupsListAdapter.IGroup
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-       /* if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }*/
     }
 
     @Override
@@ -74,25 +68,25 @@ public class GroupsFragment extends Fragment implements GroupsListAdapter.IGroup
             @Override
             public void onClick(View view) {
                 if (groupsAdapter.getCount() >= 20) {
-                    Snackbar.make(view, "Can't add more than 20 groups!", Snackbar.LENGTH_LONG)
+                    Snackbar.make(view, R.string.msg_cant_add_more, Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                 } else {
                     AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
                     final EditText edittext = new EditText(getActivity());
 
-                    alert.setTitle("New Group");
-                    alert.setMessage("Enter a group name.");
+                    alert.setTitle(R.string.new_group);
+                    alert.setMessage(R.string.enter_group_name);
 
                     alert.setView(edittext);
 
-                    alert.setPositiveButton("Create", new DialogInterface.OnClickListener() {
+                    alert.setPositiveButton(R.string.create, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
                             String name = edittext.getText().toString();
                             controller.updateSubscription(name, true);
                         }
                     });
 
-                    alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    alert.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
                             // what ever you want to do with No option.
                         }

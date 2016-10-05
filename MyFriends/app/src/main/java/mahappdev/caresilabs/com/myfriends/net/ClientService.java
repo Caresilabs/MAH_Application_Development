@@ -1,9 +1,13 @@
 package mahappdev.caresilabs.com.myfriends.net;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -35,6 +39,12 @@ public class ClientService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (null == intent) {
+            String source = null == intent ? "intent" : "action";
+            Log.e ("Friends", source + " was null, flags=" + flags + " bits=" + Integer.toBinaryString (flags));
+            return START_STICKY;
+        }
+
         this.ip = intent.getStringExtra("IpAddress");
         this.connectionPort = intent.getIntExtra("TcpPort", 9999);
         thread = new ThreadQueue();
@@ -58,9 +68,16 @@ public class ClientService extends Service {
         }
     }
 
-    public void connect() {
-        thread.start();
-        thread.enqueue(new Connect());
+    public void connect(boolean onlyOnce) {
+        if (isOnline()) {
+            if (onlyOnce && socket != null)
+                return;
+
+            thread.start();
+            thread.enqueue(new Connect());
+        } else {
+            postMessage(new LogMessage("No Connection"));
+        }
     }
 
     public void disconnect() {
@@ -68,13 +85,24 @@ public class ClientService extends Service {
     }
 
     public void send(NetMessage msg) {
-        thread.enqueue(new Send(new Gson().toJson(msg)));
+        if (output != null) {
+            thread.enqueue(new Send(new Gson().toJson(msg)));
+        } else {
+            postMessage(new LogMessage("Error sending message: No Connection"));
+        }
     }
 
     private void postMessage(NetMessage msg) {
         if (receiveListener != null) {
             receiveListener.onReceive(msg);
         }
+    }
+
+    private boolean isOnline() {
+        ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connManager.getActiveNetworkInfo();
+
+        return networkInfo != null && networkInfo.isConnectedOrConnecting();
     }
 
     private class Connect implements Runnable {
