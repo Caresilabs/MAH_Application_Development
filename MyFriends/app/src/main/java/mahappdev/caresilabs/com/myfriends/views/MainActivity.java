@@ -3,16 +3,14 @@ package mahappdev.caresilabs.com.myfriends.views;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.IBinder;
-import android.os.PersistableBundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,9 +19,9 @@ import mahappdev.caresilabs.com.myfriends.LocaleHelper;
 import mahappdev.caresilabs.com.myfriends.R;
 import mahappdev.caresilabs.com.myfriends.controllers.MainController;
 import mahappdev.caresilabs.com.myfriends.models.ProfileModel;
-import mahappdev.caresilabs.com.myfriends.net.models.NetMessage;
 import mahappdev.caresilabs.com.myfriends.net.ClientService;
 import mahappdev.caresilabs.com.myfriends.net.INetworkResponseCallback;
+import mahappdev.caresilabs.com.myfriends.net.models.NetMessage;
 import mahappdev.caresilabs.com.myfriends.repository.PreferenceRepository;
 
 public class MainActivity extends AppCompatActivity implements INetworkResponseCallback {
@@ -56,7 +54,6 @@ public class MainActivity extends AppCompatActivity implements INetworkResponseC
         LocaleHelper.onCreate(this, profile.language);
 
         setContentView(R.layout.activity_main);
-
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -130,9 +127,16 @@ public class MainActivity extends AppCompatActivity implements INetworkResponseC
         if (connection != null) {
             // Try connecting if socket is null
             connection.connect(true);
-
             controller.refreshGroups();
         }
+
+        controller.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        controller.onPause();
     }
 
     private void updateAndCheckUserProfile() {
@@ -174,14 +178,18 @@ public class MainActivity extends AppCompatActivity implements INetworkResponseC
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (isFinishing()) {
-            controller.unjoinAll();
-            connection.disconnect();
+            //controller.unjoinAll();
+            connection.disconnectNow();
             connection.setListener(null);
         }
-
         if (bound) {
             bound = false;
             unbindService(serviceConn);

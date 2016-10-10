@@ -24,11 +24,14 @@
     <string name="msg_join_before_chat">Please join a group before you start chatting!</string>
     <string name="unregistered_room">Unregistered Group</string>
     <string name="no_connection">No Connection</string>
-    <string name="joined_room">"Joined Room: "</string>
+    <string name="joined_room">Joined Group:</string>
     <string name="new_group">New Group</string>
     <string name="enter_group_name">Enter a group name.</string>
     <string name="create">Create</string>
     <string name="cancel">Cancel</string>
     <string name="msg_cant_add_more">Can\'t add more than 20 groups!</string>
+    <string name="connected">Connected!</string>
+    <string name="closed">Closed</string>
+    <string name="reconnecting">Reconnecting</string>
 
 </resources>

@@ -7,11 +7,9 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
-import android.text.Editable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 
@@ -28,11 +26,6 @@ import mahappdev.caresilabs.com.myfriends.controllers.MainController;
 import mahappdev.caresilabs.com.myfriends.models.DataModel;
 import mahappdev.caresilabs.com.myfriends.models.GroupListRow;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link GroupsFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class GroupsFragment extends Fragment implements GroupsListAdapter.IGroupListListener {
 
     @BindView(R.id.lwGroups)
@@ -82,13 +75,15 @@ public class GroupsFragment extends Fragment implements GroupsListAdapter.IGroup
                     alert.setPositiveButton(R.string.create, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
                             String name = edittext.getText().toString();
+                            if (name == null || name.equals(""))
+                                return;
+
                             controller.updateSubscription(name, true);
                         }
                     });
 
                     alert.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int whichButton) {
-                            // what ever you want to do with No option.
                         }
                     });
 
@@ -96,9 +91,6 @@ public class GroupsFragment extends Fragment implements GroupsListAdapter.IGroup
                 }
             }
         });
-
-        if (controller != null)
-            controller.refreshGroups();
 
         return view;
     }
@@ -112,7 +104,7 @@ public class GroupsFragment extends Fragment implements GroupsListAdapter.IGroup
         lwGroups.setAdapter(groupsAdapter = new GroupsListAdapter(getContext(), new ArrayList(), this));
     }
 
-    public void refreshGroups(Collection<DataModel.GroupModel> groups, String myName, String currentRoom) {
+    public void refreshGroups(Collection<DataModel.GroupModel> groups, Map<String, String> myIds, String currentRoom) {
         if (groupsAdapter == null)
             return;
 
@@ -123,7 +115,7 @@ public class GroupsFragment extends Fragment implements GroupsListAdapter.IGroup
             GroupListRow row = new GroupListRow();
             row.name = group.name;
             row.users = group.members.size() + " of 20";
-            row.isJoined = group.members.containsKey(myName);
+            row.isJoined =  myIds.containsKey(group.name);  //group.members.containsKey(myName);
             row.isCurrent = group.name.equals(currentRoom);
             rows.add(row);
         }

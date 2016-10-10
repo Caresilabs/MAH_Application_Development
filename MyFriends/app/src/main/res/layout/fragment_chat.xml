@@ -1,5 +1,6 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
 
     android:layout_width="match_parent"
@@ -27,6 +28,16 @@
         android:divider="@null"
         android:orientation="horizontal"
         android:gravity="center_vertical">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:maxWidth="64dp"
+            app:srcCompat="@android:drawable/ic_menu_camera"
+            android:id="@+id/ibPhoto"
+            android:scaleType="centerInside"
+            android:cropToPadding="false"
+            android:adjustViewBounds="true"/>
 
         <EditText
             android:layout_width="wrap_content"

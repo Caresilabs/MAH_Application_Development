@@ -1,9 +1,16 @@
 package mahappdev.caresilabs.com.myfriends.controllers;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.NotificationCompat;
 
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -11,8 +18,11 @@ import java.util.TimerTask;
 
 import mahappdev.caresilabs.com.myfriends.R;
 import mahappdev.caresilabs.com.myfriends.models.DataModel;
+import mahappdev.caresilabs.com.myfriends.net.DownloadImageTask;
+import mahappdev.caresilabs.com.myfriends.net.UploadImageTask;
 import mahappdev.caresilabs.com.myfriends.net.models.Deregister;
 import mahappdev.caresilabs.com.myfriends.net.models.Groups;
+import mahappdev.caresilabs.com.myfriends.net.models.Imagechat;
 import mahappdev.caresilabs.com.myfriends.net.models.Location;
 import mahappdev.caresilabs.com.myfriends.net.models.Locations;
 import mahappdev.caresilabs.com.myfriends.net.models.LogMessage;
@@ -37,11 +47,10 @@ public class MainController implements INetworkResponseCallback {
     private final MapsFragment   mapsFragment;
     private final ChatFragment   chatFragment;
     private       ClientService  client;
+    private       Timer          task;
 
     // All the cached data
     private final DataModel model;
-
-    private double myLatitude, myLongitude;
 
     public MainController(MainActivity activity, GroupsFragment groupsFragment, MapsFragment mapsFragment, ChatFragment chatFragment, String savedModel) {
         this.activity = activity;
@@ -55,8 +64,6 @@ public class MainController implements INetworkResponseCallback {
             this.model = new Gson().fromJson(savedModel, DataModel.class);
             updateFromSaveState();
         }
-
-        startLocationPingTimer();
     }
 
     private void updateFromSaveState() {
@@ -66,9 +73,17 @@ public class MainController implements INetworkResponseCallback {
             mapsFragment.updateMarkers(group, model.myName);
         }
 
+        updateChat();
+    }
+
+    private void updateChat() {
         // Restore Chat
-        for (DataModel.ChatModel chat : model.chats.values()) {
-            chatFragment.addChatMessage(chat);
+        chatFragment.clearChats();
+        List<DataModel.ChatModel> chats = model.chats.get(model.currentGroupName);
+        if (chats != null) {
+            for (DataModel.ChatModel chat : chats) {
+                chatFragment.addChatMessage(chat);
+            }
         }
     }
 
@@ -93,22 +108,28 @@ public class MainController implements INetworkResponseCallback {
             boolean hasSet = false;
             for (String rm : model.userIds.keySet()) {
                 if (!rm.equals(model.currentGroupName)) {
-                    model.currentGroupName = rm.toString();
+                    setActiveRoom(rm.toString());
+
                     hasSet = true;
                     break;
                 }
             }
             if (!hasSet) {
-                model.currentGroupName = null;
+                setActiveRoom(null);
             }
         }
 
         model.userIds.remove(room);
     }
 
-    public void sendChatMessage(String text) {
+    public void sendChatMessage(String text, boolean image) {
         if (model.currentGroupName != null) {
-            Textchat.Request chat = new Textchat.Request(model.userIds.get(model.currentGroupName), text);
+            NetMessage chat;
+            if (image) {
+                chat = new Imagechat.Request(model.userIds.get(model.currentGroupName), text, model.myLatitude, model.myLongitude);
+            } else {
+                chat = new Textchat.Request(model.userIds.get(model.currentGroupName), text);
+            }
             request(chat);
         } else {
             snackbar(activity.getString(R.string.msg_join_before_chat));
@@ -117,6 +138,9 @@ public class MainController implements INetworkResponseCallback {
 
     public void setActiveRoom(String room) {
         model.currentGroupName = room;
+
+        mapsFragment.updateMarkers(model.groups.get(room), model.myName);
+        updateChat();
     }
 
     public void refreshGroups() {
@@ -137,17 +161,25 @@ public class MainController implements INetworkResponseCallback {
     }
 
     private void startLocationPingTimer() {
-        Timer task = new Timer();
+        task = new Timer();
         task.schedule(new TimerTask() {
             @Override
             public void run() {
                 // Send location to server
-                updateUserLocation(myLatitude, myLongitude);
+                updateUserLocation(model.myLatitude, model.myLongitude);
 
                 // Refresh the groups
                 refreshGroups();
             }
-        }, 1000, 20000);
+        }, 2000, 20000);
+    }
+
+    public void onResume() {
+        startLocationPingTimer();
+    }
+
+    public void onPause() {
+        task.cancel();
     }
 
     @Override
@@ -167,10 +199,9 @@ public class MainController implements INetworkResponseCallback {
 
                     refreshMembers(name);
                 }
-            } else {
-                // if there is not groups. update list instead of members
-                groupsFramgent.refreshGroups(model.groups.values(), model.myName, model.currentGroupName);
             }
+
+            groupsFramgent.refreshGroups(model.groups.values(), model.userIds, model.currentGroupName);
 
         } else if (netMessage instanceof Members.Response) {
             List<Map<String, String>> members = ((Members.Response) netMessage).members;
@@ -181,22 +212,22 @@ public class MainController implements INetworkResponseCallback {
                         .members.put(memberName, new DataModel.MemberModel(memberName));
             }
 
-            groupsFramgent.refreshGroups(model.groups.values(), model.myName, model.currentGroupName); //((Groups.Response) netMessage).groups
+            groupsFramgent.refreshGroups(model.groups.values(), model.userIds, model.currentGroupName); //((Groups.Response) netMessage).groups
 
         } else if (netMessage instanceof Register.Response) {
             Register.Response register = (Register.Response) netMessage;
 
             model.userIds.put(register.group, register.id);
-            model.currentGroupName = register.group;
+            setActiveRoom(register.group);
 
             refreshGroups();
-            updateUserLocation(myLatitude, myLongitude);
+            updateUserLocation(model.myLatitude, model.myLongitude);
 
-            snackbar(activity.getString(R.string.joined_room) + register.group); //+ ((Register.Response) netMessage).id);
+            snackbar(activity.getString(R.string.joined_room) + " " + register.group); //+ ((Register.Response) netMessage).id);
 
         } else if (netMessage instanceof Deregister.Response) {
             // Do nothing now
-            snackbar(activity.getString(R.string.unregistered_room)); //as User: " + ((Deregister.Response) netMessage).id
+            snackbar(activity.getString(R.string.unregistered_room));
 
             refreshGroups();
         } else if (netMessage instanceof Locations.Response) {
@@ -220,20 +251,58 @@ public class MainController implements INetworkResponseCallback {
         } else if (netMessage instanceof Textchat.Response) {
             Textchat.Response message = ((Textchat.Response) netMessage);
 
-            if (message.group != null && message.group.equals(model.currentGroupName)) {
-                DataModel.ChatModel chat = new DataModel.ChatModel();
-                chat.isUser = model.myName.equals(message.member);
-                chat.member = message.member;
-                chat.message = message.text;
+            DataModel.ChatModel chat = new DataModel.ChatModel();
+            chat.isUser = model.myName.equals(message.member);
+            chat.member = message.member;
+            chat.message = message.text;
 
-                model.chats.put(model.currentGroupName, chat);
-                chatFragment.addChatMessage(chat);
+            if (message.group != null) {
+                if (message.group.equals(model.currentGroupName))
+                    addChatMessage(chat);
+
+                sendNotification(chat, message.group);
             }
+        } else if (netMessage instanceof Imagechat.Response) {
+            final Imagechat.Response message = ((Imagechat.Response) netMessage);
+
+            if (message.group == null)
+                return;
+
+            new DownloadImageTask(client.getAddress(), message.port, new DownloadImageTask.IImageDownloaded() {
+                @Override
+                public void onDownloaded(Bitmap bitmap) {
+                    DataModel.ChatModel chat = new DataModel.ChatModel();
+                    chat.isUser = model.myName.equals(message.member);
+                    chat.member = message.member;
+                    chat.message = message.text;
+                    chat.image = chatFragment.saveBitmap(bitmap);
+
+                    if (message.group.equals(model.currentGroupName)) {
+                        addChatMessage(chat);
+                    }
+
+                    sendNotification(chat, message.group);
+                }
+            }).execute(message.imageid);
+        } else if (netMessage instanceof Imagechat.Upload) {
+            byte[] imageId = ((Imagechat.Upload) netMessage).imageid.getBytes();
+
+            new UploadImageTask(client.getAddress(), ((Imagechat.Upload) netMessage).port)
+                    .execute(imageId, chatFragment.consumeNextPhoto());
         } else if (netMessage instanceof Location.Response) {
             // Do nothing
         } else {
             snackbar("Unknown type: " + netMessage.type);
         }
+    }
+
+    private void addChatMessage(DataModel.ChatModel chat) {
+        if (!model.chats.containsKey(model.currentGroupName)) {
+            model.chats.put(model.currentGroupName, new ArrayList<DataModel.ChatModel>());
+        }
+
+        model.chats.get(model.currentGroupName).add(chat);
+        chatFragment.addChatMessage(chat);
     }
 
     private void snackbar(String text) {
@@ -261,13 +330,47 @@ public class MainController implements INetworkResponseCallback {
         refreshGroups();
     }
 
+    private void sendNotification(DataModel.ChatModel chat, String group) {
+        if (chat.member.equals(model.myName))
+            return;
+
+        // We already have chat up
+        if (activity.getViewPager().getCurrentItem() == 2)
+            return;
+
+        android.support.v4.app.NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(activity)
+                        .setSmallIcon(R.drawable.ic_icon)
+                        .setContentTitle("New Message!")
+                        .setOnlyAlertOnce(false)
+                        .setPriority(Notification.PRIORITY_HIGH)
+                        .setDefaults(Notification.DEFAULT_VIBRATE)
+                        .setAutoCancel(true)
+                        .setContentText("[" + group + "] " + chat.member + ": " + chat.message);
+
+
+        int mNotificationId = 001;
+        NotificationManager mNotifyMgr =
+                (NotificationManager) activity.getSystemService(activity.NOTIFICATION_SERVICE);
+
+        Intent resultIntent = activity.getIntent();
+        resultIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        resultIntent.setAction(Intent.ACTION_MAIN);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(activity, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        mBuilder.setContentIntent(pendingIntent);
+
+        mNotifyMgr.notify(mNotificationId, mBuilder.build());
+    }
+
+
     public String onSave() {
         return new Gson().toJson(model);
     }
 
     public void setMyLocation(double latitude, double longitude) {
-        this.myLatitude = latitude;
-        this.myLongitude = longitude;
+        this.model.myLatitude = latitude;
+        this.model.myLongitude = longitude;
     }
 
     public void setName(String name) {

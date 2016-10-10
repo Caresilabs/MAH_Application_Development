@@ -1,6 +1,5 @@
 package mahappdev.caresilabs.com.myfriends.models;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,13 +12,15 @@ public class DataModel {
 
     public String myName;
 
+    public double myLatitude, myLongitude;
+
     public Map<String, String> userIds = new HashMap<>();
 
     public String currentGroupName;
 
     public Map<String, GroupModel> groups = new HashMap<>();
 
-    public Map<String, ChatModel> chats = new HashMap<>();
+    public Map<String, List<ChatModel>> chats = new HashMap<>();
 
     public static class GroupModel {
 
@@ -53,6 +54,6 @@ public class DataModel {
 
         public boolean isUser;
 
-        public String imagePath;
+        public String image;
     }
 }

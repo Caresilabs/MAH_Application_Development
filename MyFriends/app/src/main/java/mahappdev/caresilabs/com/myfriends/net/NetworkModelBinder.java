@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import mahappdev.caresilabs.com.myfriends.net.models.Deregister;
 import mahappdev.caresilabs.com.myfriends.net.models.Groups;
+import mahappdev.caresilabs.com.myfriends.net.models.Imagechat;
 import mahappdev.caresilabs.com.myfriends.net.models.Location;
 import mahappdev.caresilabs.com.myfriends.net.models.Locations;
 import mahappdev.caresilabs.com.myfriends.net.models.LogMessage;
@@ -36,6 +37,8 @@ public class NetworkModelBinder {
         types.put("location", Location.Response.class);
         types.put("locations", Locations.Response.class);
         types.put("textchat", Textchat.Response.class);
+        types.put("imagechat", Imagechat.Response.class);
+        types.put("upload", Imagechat.Upload.class);
         types.put("exception", LogMessage.class);
     }
 

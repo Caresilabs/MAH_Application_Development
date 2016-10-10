@@ -93,7 +93,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Locati
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
         for (MarkerOptions mrkOpt : markersToAdd) {
-           map.addMarker(mrkOpt);
+            map.addMarker(mrkOpt);
         }
         markersToAdd.clear();
     }
@@ -127,7 +127,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Locati
     }
 
     public void updateMarkers(DataModel.GroupModel group, String myName) {
-        if (markersToAdd.size() != 0 && map == null)
+        if ((markersToAdd.size() != 0 && map == null) || group == null)
             return;
 
         markersToAdd.clear();

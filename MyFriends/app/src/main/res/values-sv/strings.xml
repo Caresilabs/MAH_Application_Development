@@ -21,11 +21,13 @@
     <string name="msg_join_before_chat">Var snäll att gå med ett grupp före du startar chatta!</string>
     <string name="unregistered_room">Avregistrerade Grupp</string>
     <string name="no_connection">Ingen Anslutning</string>
-    <string name="joined_room">Gick med i grupp: </string>
-
+    <string name="joined_room">Gick med i grupp:</string>
     <string name="new_group">Ny Grupp</string>
     <string name="enter_group_name">Fyll i ett gruppnamn.</string>
     <string name="create">Skapa</string>
     <string name="cancel">Avbryt</string>
     <string name="msg_cant_add_more">Kan inte lägga till fler än 20 grupper!</string>
+    <string name="connected">Ansluten!</string>
+    <string name="closed">Stängd</string>
+    <string name="reconnecting">Återuptar anslutning</string>
 </resources>

@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 
 import butterknife.BindString;
@@ -34,6 +33,7 @@ public class ProfileActivity extends AppCompatActivity {
     private PreferenceRepository                prefs;
     private ProfileModel                        model;
     private ArrayAdapter<ProfileModel.Language> languageAdapter;
+    private int languageSelectionCount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,20 +44,21 @@ public class ProfileActivity extends AppCompatActivity {
         this.prefs = new PreferenceRepository(getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE));
         this.model = prefs.get(ProfileModel.class, 0);
 
-        languageAdapter = new ArrayAdapter<ProfileModel.Language>(this,
-                android.R.layout.simple_spinner_dropdown_item, ProfileModel.Language.values());
-        spnrLanguage.setAdapter(languageAdapter);
-
         spnrLanguage.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Snackbar.make(findViewById(R.id.profile_layout), "A restart is needed after changing the language.", Snackbar.LENGTH_LONG).show();
+                if (languageSelectionCount++ != 0)
+                    Snackbar.make(findViewById(R.id.profile_layout), "A restart is needed after changing the language.", Snackbar.LENGTH_LONG).show();
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
+
+        languageAdapter = new ArrayAdapter<ProfileModel.Language>(this,
+                android.R.layout.simple_spinner_dropdown_item, ProfileModel.Language.values());
+        spnrLanguage.setAdapter(languageAdapter);
 
         if (model == null) {
             model = new ProfileModel();

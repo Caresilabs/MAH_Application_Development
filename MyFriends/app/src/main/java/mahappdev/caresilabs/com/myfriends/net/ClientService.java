@@ -16,38 +16,36 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 
+import mahappdev.caresilabs.com.myfriends.R;
 import mahappdev.caresilabs.com.myfriends.net.models.LogMessage;
 import mahappdev.caresilabs.com.myfriends.net.models.NetMessage;
 
 public class ClientService extends Service {
-    //public static final String IP="IP",PORT="PORT"; //
-
-    private ThreadQueue                thread;
-    private Receive                    receive;
-    //private  ThreadQueue.Buffer<String> receiveBuffer; //
-    private Socket                     socket;
-    private DataInputStream          input;
-    private DataOutputStream         output;
-    private InetAddress                address;
-    private int                        connectionPort;
-    private String                     ip;
-    private Exception                  exception;
+    private ThreadQueue      thread;
+    private Receive          receive;
+    private Socket           socket;
+    private DataInputStream  input;
+    private DataOutputStream output;
+    private InetAddress      address;
+    private int              connectionPort;
+    private String           ip;
 
     private INetworkResponseCallback receiveListener;
-    private NetworkModelBinder modelBinder;
+    private NetworkModelBinder       modelBinder;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (null == intent) {
             String source = null == intent ? "intent" : "action";
-            Log.e ("Friends", source + " was null, flags=" + flags + " bits=" + Integer.toBinaryString (flags));
+            Log.e("Friends", source + " was null, flags=" + flags + " bits=" + Integer.toBinaryString(flags));
             return START_STICKY;
         }
 
         this.ip = intent.getStringExtra("IpAddress");
         this.connectionPort = intent.getIntExtra("TcpPort", 9999);
-        thread = new ThreadQueue();
+
         //receiveBuffer = new ThreadQueue.Buffer<String>();
         this.modelBinder = new NetworkModelBinder();
         return Service.START_STICKY;
@@ -70,13 +68,26 @@ public class ClientService extends Service {
 
     public void connect(boolean onlyOnce) {
         if (isOnline()) {
-            if (onlyOnce && socket != null)
-                return;
+           if (onlyOnce && socket != null) {
+           /*    if (thread != null)
+                   thread.stop();
+               if (receive != null)
+                   receive.interrupt();
 
+               thread = new ThreadQueue();
+               thread.start();
+               receive = new Receive();
+               receive.start();*/
+               thread = new ThreadQueue();
+               thread.start();
+               return;
+           }
+
+            thread = new ThreadQueue();
             thread.start();
             thread.enqueue(new Connect());
         } else {
-            postMessage(new LogMessage("No Connection"));
+            postMessage(new LogMessage(getString(R.string.no_connection)));
         }
     }
 
@@ -84,11 +95,16 @@ public class ClientService extends Service {
         thread.enqueue(new Disconnect());
     }
 
+    public void disconnectNow() {
+        new Disconnect().run();
+    }
+
     public void send(NetMessage msg) {
         if (output != null) {
             thread.enqueue(new Send(new Gson().toJson(msg)));
         } else {
-            postMessage(new LogMessage("Error sending message: No Connection"));
+            //  postMessage(new LogMessage("Error sending message: No Connection"));
+            postMessage(new LogMessage(getString(R.string.no_connection)));
         }
     }
 
@@ -105,24 +121,26 @@ public class ClientService extends Service {
         return networkInfo != null && networkInfo.isConnectedOrConnecting();
     }
 
+    public InetAddress getAddress() {
+        return address;
+    }
+
     private class Connect implements Runnable {
         public void run() {
             try {
+
                 address = InetAddress.getByName(ip);
                 socket = new Socket(address, connectionPort);
                 input = new DataInputStream(socket.getInputStream());
                 output = new DataOutputStream(socket.getOutputStream());
                 output.flush();
 
-                // receiveBuffer.put("CONNECTED");
-                postMessage(new LogMessage("Connected!"));
+                postMessage(new LogMessage(getString(R.string.connected)));
 
                 receive = new Receive();
                 receive.start();
             } catch (Exception e) { // SocketException, UnknownHostException
-                exception = e;
                 postMessage(new LogMessage(e.getMessage()));
-                //receiveBuffer.put("EXCEPTION");
             }
         }
     }
@@ -130,19 +148,21 @@ public class ClientService extends Service {
     private class Disconnect implements Runnable {
         public void run() {
             try {
+                if (thread != null)
+                    thread.stop();
+                if (receive != null)
+                    receive.interrupt();
+
                 if (input != null)
                     input.close();
                 if (output != null)
                     output.close();
                 if (socket != null)
                     socket.close();
-                thread.stop();
-                 // receiveBuffer.put("CLOSED");
-                postMessage(new LogMessage("Closed"));
-            } catch(IOException e) {
-                exception = e;
+
+                postMessage(new LogMessage(getString(R.string.closed)));
+            } catch (IOException e) {
                 postMessage(new LogMessage(e.getMessage()));
-                // receiveBuffer.put("EXCEPTION");
             }
         }
     }
@@ -159,10 +179,13 @@ public class ClientService extends Service {
                 output.writeUTF(data);
                 output.flush();
             } catch (IOException e) {
-                exception = e;
-
-                postMessage(new LogMessage(e.getMessage()));
-                //receiveBuffer.put("EXCEPTION");
+                if (e.getMessage().contains("Broken Pipe") || e instanceof SocketException) {
+                    postMessage(new LogMessage( getString(R.string.reconnecting)));
+                    disconnectNow();
+                    connect(false);
+                } else {
+                    postMessage(new LogMessage(e.getMessage()));
+                }
             }
         }
     }
@@ -173,13 +196,12 @@ public class ClientService extends Service {
             try {
                 while (receive != null) {
                     result = (String) input.readUTF();
-                    //receiveBuffer.put(result);
-
                     postMessage(modelBinder.get(result));
                 }
-            } catch (Exception e) { // IOException, ClassNotFoundException
+            } catch (Exception e) {
                 receive = null;
             }
         }
     }
+
 }
