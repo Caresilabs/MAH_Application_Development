@@ -50,6 +50,8 @@ public class DataModel {
     public static class ChatModel {
         public String member;
 
+        public String group;
+
         public String message;
 
         public boolean isUser;

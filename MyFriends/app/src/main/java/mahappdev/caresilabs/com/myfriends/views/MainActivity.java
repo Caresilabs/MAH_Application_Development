@@ -187,6 +187,7 @@ public class MainActivity extends AppCompatActivity implements INetworkResponseC
         super.onDestroy();
         if (isFinishing()) {
             //controller.unjoinAll();
+            controller.unjoinAll();
             connection.disconnectNow();
             connection.setListener(null);
         }

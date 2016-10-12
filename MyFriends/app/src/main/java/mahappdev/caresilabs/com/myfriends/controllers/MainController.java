@@ -255,12 +255,10 @@ public class MainController implements INetworkResponseCallback {
             chat.isUser = model.myName.equals(message.member);
             chat.member = message.member;
             chat.message = message.text;
+            chat.group = message.group;
 
             if (message.group != null) {
-                if (message.group.equals(model.currentGroupName))
-                    addChatMessage(chat);
-
-                sendNotification(chat, message.group);
+               addChatMessage(chat);
             }
         } else if (netMessage instanceof Imagechat.Response) {
             final Imagechat.Response message = ((Imagechat.Response) netMessage);
@@ -276,12 +274,9 @@ public class MainController implements INetworkResponseCallback {
                     chat.member = message.member;
                     chat.message = message.text;
                     chat.image = chatFragment.saveBitmap(bitmap);
+                    chat.group = message.group;
 
-                    if (message.group.equals(model.currentGroupName)) {
-                        addChatMessage(chat);
-                    }
-
-                    sendNotification(chat, message.group);
+                    addChatMessage(chat);
                 }
             }).execute(message.imageid);
         } else if (netMessage instanceof Imagechat.Upload) {
@@ -300,9 +295,13 @@ public class MainController implements INetworkResponseCallback {
         if (!model.chats.containsKey(model.currentGroupName)) {
             model.chats.put(model.currentGroupName, new ArrayList<DataModel.ChatModel>());
         }
-
         model.chats.get(model.currentGroupName).add(chat);
-        chatFragment.addChatMessage(chat);
+
+        // Dont display if not in active group
+        if (chat.group.equals(model.currentGroupName))
+            chatFragment.addChatMessage(chat);
+
+        sendNotification(chat);
     }
 
     private void snackbar(String text) {
@@ -330,7 +329,7 @@ public class MainController implements INetworkResponseCallback {
         refreshGroups();
     }
 
-    private void sendNotification(DataModel.ChatModel chat, String group) {
+    private void sendNotification(DataModel.ChatModel chat) {
         if (chat.member.equals(model.myName))
             return;
 
@@ -346,7 +345,7 @@ public class MainController implements INetworkResponseCallback {
                         .setPriority(Notification.PRIORITY_HIGH)
                         .setDefaults(Notification.DEFAULT_VIBRATE)
                         .setAutoCancel(true)
-                        .setContentText("[" + group + "] " + chat.member + ": " + chat.message);
+                        .setContentText("[" + chat.group + "] " + chat.member + ": " + chat.message);
 
 
         int mNotificationId = 001;
